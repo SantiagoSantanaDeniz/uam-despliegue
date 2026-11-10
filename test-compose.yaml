@@ -1,0 +1,49 @@
+name: uam-deploy-test
+
+services:
+  uam:
+    image: uam:1.0.0
+
+    depends_on:
+      - postgres
+
+    secrets:
+      - database_url
+      - session_secret
+      - two_factor_encryption_key
+
+    command: ["node", "node_modules/next/dist/bin/next", "start", "--hostname", "0.0.0.0"]
+
+    ports:
+      - "127.0.0.1:3000:3000"
+      
+  postgres:
+    image: postgres:18
+    restart: "no"
+
+    environment:
+      POSTGRES_USER: uam
+      POSTGRES_DB: uam
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+
+    secrets:
+      - postgres_password
+
+    volumes:
+      - postgres_test_data:/var/lib/postgresql
+
+secrets:
+  database_url:
+    file: ./secrets/database_url
+
+  session_secret:
+    file: ./secrets/session_secret
+
+  two_factor_encryption_key:
+    file: ./secrets/two_factor_encryption_key
+
+  postgres_password:
+    file: ./secrets/postgres_password
+
+volumes:
+  postgres_test_data:

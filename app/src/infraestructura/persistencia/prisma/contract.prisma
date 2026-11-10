@@ -1,0 +1,283 @@
+// ROLES DE USUARIO
+enum RolUsuario {
+  @@type("pg/text@1")
+
+  ADMINISTRADOR
+  OPERADOR
+  PRODUCTOR
+}
+
+// TIPOS DE PUBLICACIONES
+enum TipoPublicacion {
+  @@type("pg/text@1")
+
+  OPERADOR
+  PRODUCTOR
+}
+
+// USUARIOS
+model Usuario {
+  id               Int            @id @default(autoincrement())
+  username         String         @unique
+  passwordHash     String
+  twoFactorSecret  String?
+  twoFactorEnabled Boolean        @default(false)
+  solicitoRestablecimiento Boolean        @default(false)
+  rol              RolUsuario
+
+  notificaciones   Notificacion[]
+
+  @@map("usuario")
+}
+
+// ADMINISTRADORES
+model Administrador {
+  id        Int     @id @default(autoincrement())
+  usuarioId Int     @unique
+  usuario   Usuario @relation(fields:[usuarioId], references:[id], onDelete: Cascade)
+  email     String  @unique
+
+  @@map("administrador")
+}
+
+// OPERADORES
+model Operador {
+  id                    Int                   @id @default(autoincrement())
+  usuarioId             Int                   @unique
+  usuario               Usuario               @relation(fields:[usuarioId], references:[id], onDelete: Cascade)
+  nombreFantasia        String                @unique
+  enLicencia            Boolean               @default(false)
+  fotoPerfil            String?
+  comentario            String?
+  whatsApp              String
+
+  locales               Local[]
+  publicacionesOperador PublicacionOperador[]
+
+  @@map("operador")
+}
+
+// PRODUCTORES
+model Productor {
+  id                     Int                    @id @default(autoincrement())
+  usuarioId              Int                    @unique
+  usuario                Usuario                @relation(fields:[usuarioId], references:[id], onDelete: Cascade)
+  nombreFantasia         String                 @unique
+  fotoPerfil             String?
+  whatsApp               String
+
+  publicacionesProductor PublicacionProductor[]
+
+  @@map("productor")
+}
+
+// NAVES
+model Nave {
+  id         Int     @id @default(autoincrement())
+  nombreNave String  @unique
+  locales    Local[]
+
+  @@map("nave")
+}
+
+// LOCALES
+model Local {
+  id          Int       @id @default(autoincrement())
+  numeroLocal String
+  finContrato DateTime?
+  operadorId  Int
+  operador    Operador  @relation(fields:[operadorId], references:[id])
+  naveId      Int
+  nave        Nave      @relation(fields:[naveId], references:[id])
+
+  @@unique([numeroLocal, naveId])
+  @@map("local")
+}
+
+// ESPECIES
+model Especie {
+  id            Int         @id @default(autoincrement())
+  uamId         Int?        @unique
+  nombreEspecie String
+  especieActiva Boolean     @default(true)
+  fotoEspecie   String?
+  variedades    Variedad[]
+  categorias    Categoria[]
+  historicoPrecios HistoricoPrecios?
+  publicaciones Publicacion[]
+
+  @@map("especie")
+}
+
+// VARIEDADES
+model Variedad {
+  id             Int            @id @default(autoincrement())
+  uamId          Int?           @unique
+  nombreVariedad String
+  variedadActiva Boolean        @default(true)
+  especieId      Int
+  especie        Especie        @relation(fields:[especieId], references:[id])
+  presentaciones Presentacion[]
+  publicaciones Publicacion[]
+
+  @@map("variedad")
+}
+
+// PRESENTACIONES
+model Presentacion {
+  id                  Int             @id @default(autoincrement())
+  uamId               Int?            @unique
+  nombrePresentacion  String
+  kgPorUnidad         Numeric(10, 2)?
+  presentacionActiva  Boolean         @default(true)
+  presentacionDefault Boolean         @default(false)
+  variedadId          Int
+  variedad            Variedad        @relation(fields:[variedadId], references:[id])
+  publicaciones       Publicacion[]
+
+  @@map("presentacion")
+}
+
+// CATEGORIAS
+model Categoria {
+  id              Int           @id @default(autoincrement())
+  nombreCategoria String
+  especieId       Int?
+  especie         Especie?      @relation(fields:[especieId], references:[id])
+  publicaciones   Publicacion[]
+
+  @@map("categoria")
+}
+
+// CALIBRES
+model Calibre {
+  id            Int           @id @default(autoincrement())
+  codigoCalibre String        @unique
+  nombreCalibre String
+  publicaciones Publicacion[]
+
+  @@map("calibre")
+}
+
+// PAISES
+model Pais {
+  id                     Int                    @id @default(autoincrement())
+  codigoPais             String                 @unique
+  nombrePais             String                 @unique
+  publicacionesOperador  PublicacionOperador[]  @relation("PaisOperador")
+  publicacionesProductor PublicacionProductor[] @relation("PaisProductor")
+
+  @@map("pais")
+}
+
+// UBICACIONES
+model Ubicacion {
+  id              Int                  @id @default(autoincrement())
+  nombreUbicacion String
+  urlMaps         String
+  publicacionId   Int
+  publicacion     PublicacionProductor @relation(fields:[publicacionId], references:[id], onDelete: Cascade)
+
+  @@map("ubicacion")
+}
+
+model Imagen {
+  clave     String @id
+  contenido Bytes
+
+  @@map("imagen")
+}
+
+// PUBLICACIONES ABSTRACTAS
+model Publicacion {
+  id                    Int                  @id @default(autoincrement())
+  version               Int                  @default(1)
+  fecha                 temporal.updatedAt()
+  publicacionDisponible Boolean              @default(true)
+  publicacionActiva     Boolean              @default(true)
+  precio                Numeric(12, 2)?
+  cantidadUnidades      Int?
+  foto                  String?
+  tipoPublicacion       TipoPublicacion
+  especieId             Int
+  especie               Especie              @relation(fields:[especieId], references:[id])
+  variedadId            Int?
+  variedad              Variedad?            @relation(fields:[variedadId], references:[id])
+  presentacionId        Int?
+  presentacion          Presentacion?        @relation(fields:[presentacionId], references:[id])
+  categoriaId           Int?
+  categoria             Categoria?           @relation(fields:[categoriaId], references:[id])
+  calibreId             Int?
+  calibre               Calibre?             @relation(fields:[calibreId], references:[id])
+
+  @@map("publicacion")
+}
+
+// PUBLICACIONES DE OPERADORES
+model PublicacionOperador {
+  id            Int         @id @default(autoincrement())
+  publicacionId Int         @unique
+  publicacion   Publicacion @relation(fields:[publicacionId], references:[id], onDelete: Cascade)
+  operadorId    Int
+  operador      Operador    @relation(fields:[operadorId], references:[id])
+  paisId        Int?
+  pais          Pais?       @relation("PaisOperador", fields:[paisId], references:[id])
+
+  @@map("publicacionOperador")
+}
+
+// PUBLICACIONES DE PRODUCTORES
+model PublicacionProductor {
+  id             Int         @id @default(autoincrement())
+  publicacionId  Int         @unique
+  publicacion    Publicacion @relation(fields:[publicacionId], references:[id], onDelete: Cascade)
+  productorId    Int
+  productor      Productor   @relation(fields:[productorId], references:[id])
+  paisId         Int?
+  pais           Pais?       @relation("PaisProductor", fields:[paisId], references:[id])
+  ubicaciones    Ubicacion[]
+
+  @@map("publicacionProductor")
+}
+
+// NOTIFICACIONES
+model Notificacion {
+  id          Int     @id @default(autoincrement())
+  titulo      String
+  descripcion String
+  vista       Boolean @default(false)
+
+  usuarioId   Int
+  usuario     Usuario @relation(fields:[usuarioId], references:[id], onDelete: Cascade)
+
+  @@map("notificacion")
+}
+
+// CONFIGURACION
+model Configuracion {
+  id                  Int    @id @default(autoincrement())
+  nombreConfiguracion String @unique
+  valorConfiguracion  String
+
+  @@map("configuracion")
+}
+
+// PRECIOS DE REFERENCIA
+model CachePreciosReferencia {
+  id          Int    @id @default(autoincrement())
+  claveCache  String @unique
+  estadoCache String
+
+  @@map("cachePreciosReferencia")
+}
+
+model HistoricoPrecios {
+  especieId                Int     @id
+  especie                  Especie @relation(fields:[especieId], references:[id])
+  historico                Jsonb
+  fechaDesde               Date
+  fechaHasta               Date
+  fechaUltimaActualizacion  Date
+
+  @@map("historicoPrecios")
+}
