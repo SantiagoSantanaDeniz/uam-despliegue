@@ -8,8 +8,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
+      PRECIOS_REFERENCIA_FUENTE: ${PRECIOS_REFERENCIA_FUENTE:-webservice}
       PRECIOS_REFERENCIA_WEBSERVICE_BASE_URL: ${PRECIOS_REFERENCIA_WEBSERVICE_BASE_URL:?Debe configurar la URL del webservice}
-
+      PRECIOS_HISTORICOS_ENDPOINT: ${PRECIOS_HISTORICOS_ENDPOINT:?Debe configurar el endpoint de históricos}
     ports:
       - "127.0.0.1:3000:3000"
 
