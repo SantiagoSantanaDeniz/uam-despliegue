@@ -2,10 +2,14 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { obtenerSesion } from "@/modulos/identidad-acceso/autenticacion/sesiones";
 import { ErrorAutorizacion } from "@/modulos/identidad-acceso/autorizacion/controles";
-import { obtenerOpcionesEdicionPublicacion } from "@/modulos/publicaciones/operadores/consultas-edicion-publicacion";
-import { ErrorEdicionPublicacionProductor, modificarPublicacionProductor, obtenerPublicacionProductorEditable } from "@/modulos/publicaciones/productores/modificar-publicacion";
-import { bajaPublicacionProductorAutorizada, ErrorBajaPublicacionProductor } from "@/modulos/publicaciones/productores/bajaPublicacionProductorAutorizada";
+import { obtenerOpcionesEdicionPublicacion } from "@/modulos/publicaciones/catalogos/consultas-edicion-publicacion";
+import { ErrorEdicionPublicacionProductor, modificarPublicacionProductor, obtenerPublicacionProductorEditable } from "@/modulos/publicaciones/productores/operaciones/modificar-publicacion";
+import { bajaPublicacionProductorAutorizada, ErrorBajaPublicacionProductor } from "@/modulos/publicaciones/productores/operaciones/baja-publicacion-autorizada";
 import { ErrorCuerpoDemasiadoGrande, leerFormularioLimitado } from "@/infraestructura/http/cuerpo-limitado";
+import { agregarEstadoFotosPropias } from "@/modulos/publicaciones/imagenes/vigencia/estado-fotos-propias";
+import { agregarEstadoVigenciaPropias } from "@/modulos/publicaciones/vigencia/estado-vigencia-propias";
+import { registrarPublicacion } from "@/modulos/administracion/estadisticas/registrar-estadisticas";
+import { db } from "@/infraestructura/persistencia/prisma/db";
 
 export const runtime = "nodejs";
 type Contexto = { params: Promise<{ id: string }> };
@@ -30,6 +34,20 @@ async function contextoAutorizado(contexto: Contexto) {
         throw new ErrorEdicionPublicacionProductor("DATOS_INVALIDOS", "La publicación no es válida.");
     }
     return { sesion, publicacionProductorId };
+}
+
+async function registrarEstadisticaPublicacionPorProductorId(productorId: number) {
+    try {
+        const productorRecord = await db.orm.public.Productor.where({ id: productorId }).select("usuarioId").first();
+        if (productorRecord) {
+            const usuarioVinculado = await db.orm.public.Usuario.select("username").where({ id: productorRecord.usuarioId }).first();
+            if (usuarioVinculado?.username) {
+                await registrarPublicacion(usuarioVinculado.username);
+            }
+        }
+    } catch (errEst) {
+        console.error("Error al registrar estadística de publicación (modificación productor):", errEst);
+    }
 }
 
 export async function GET(_solicitud: Request, contexto: Contexto) {
@@ -59,6 +77,7 @@ export async function PATCH(solicitud: Request, contexto: Contexto) {
             throw new ErrorEdicionPublicacionProductor("DATOS_INVALIDOS", "No se pudieron leer los cambios de la publicación.");
         }
         const resultado = await modificarPublicacionProductor(sesion, publicacionProductorId, cambios, foto);
+        await registrarEstadisticaPublicacionPorProductorId(resultado.productorId);
         for (const ruta of ["/mi-mercado/productor", `/gestion-productores/${resultado.productorId}`, "/publicaciones-productor", "/inicio"]) {
             try {
                 revalidatePath(ruta);
@@ -66,7 +85,9 @@ export async function PATCH(solicitud: Request, contexto: Contexto) {
                 console.error(`No se pudo revalidar ${ruta} tras guardar la publicación:`, error);
             }
         }
-        return NextResponse.json({ publicacion: resultado.publicacion });
+        const [publicacion] = await agregarEstadoFotosPropias([resultado.publicacion], "PRODUCTOR");
+        const [{ estadoVigencia }] = await agregarEstadoVigenciaPropias([{ fechaVigencia: resultado.fechaVigencia }], "PRODUCTOR");
+        return NextResponse.json({ publicacion: { ...publicacion, estadoVigencia } });
     } catch (error) {
         return respuestaError(error);
     }

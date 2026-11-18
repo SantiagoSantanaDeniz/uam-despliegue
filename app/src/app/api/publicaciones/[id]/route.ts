@@ -2,14 +2,15 @@ import { normalizarSeleccionPublicacion } from "@/modulos/publicaciones/seleccio
 import { obtenerSesion } from "@/modulos/identidad-acceso/autenticacion/sesiones";
 import { autorizado } from "@/modulos/identidad-acceso/autorizacion/permisos";
 import { NextResponse } from "next/server";
-import { obtenerOperadorAutorizado, obtenerOperadorPorId } from "@/modulos/usuarios/operadores/operador-actual";
-import { bajaPublicacionOperador } from "@/modulos/publicaciones/bajaPublicacionOperador";
+import { obtenerOperadorAutorizado, obtenerOperadorPorId } from "@/modulos/usuarios/operadores/consultas/operador-actual";
+import { bajaPublicacionOperador } from "@/modulos/publicaciones/operadores/operaciones/baja-publicacion";
 import { db } from "@/infraestructura/persistencia/prisma/db";
 import { ErrorAutorizacion } from "@/modulos/identidad-acceso/autorizacion/controles";
-import { ErrorEdicionPublicacion, modificarPublicacionOperador } from "@/modulos/publicaciones/operadores/modificar-publicacion";
+import { ErrorEdicionPublicacion, modificarPublicacionOperador } from "@/modulos/publicaciones/operadores/operaciones/modificar-publicacion";
 import type { CambiosPublicacionOperador } from "@/modulos/publicaciones/operadores/tipos";
 import { revalidatePath } from "next/cache";
 import { ErrorCuerpoDemasiadoGrande, leerFormularioLimitado } from "@/infraestructura/http/cuerpo-limitado";
+import { registrarPublicacion } from "@/modulos/administracion/estadisticas/registrar-estadisticas";
 
 export const runtime = "nodejs";
 
@@ -153,7 +154,18 @@ export async function PATCH(solicitud: Request, contexto: Contexto) {
 		if (!vinculo) {
 			return NextResponse.json({ errores: ["La publicación no pertenece al operador seleccionado."] }, { status: 404 });
 		}
-		const resultado = await modificarPublicacionOperador(operador.usuarioId, vinculo.id, cambios as CambiosPublicacionOperador, fotoNueva);
+		const resultado = await modificarPublicacionOperador(
+			operador.usuarioId, vinculo.id, cambios as CambiosPublicacionOperador, fotoNueva,
+			sesion.rol === "ADMINISTRADOR",
+		);
+		try {
+			const usuarioVinculado = await db.orm.public.Usuario.select("username").where({ id: operador.usuarioId }).first();
+			if (usuarioVinculado?.username) {
+				await registrarPublicacion(usuarioVinculado.username);
+			}
+		} catch (errEst) {
+			console.error("Error al registrar estadística de publicación:", errEst);
+		}
 		actualizarVistas(operador);
 		return NextResponse.json({ ...resultado, mensaje: "Publicación modificada correctamente." });
 	} catch (error) {

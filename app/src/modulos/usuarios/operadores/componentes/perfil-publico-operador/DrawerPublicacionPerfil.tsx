@@ -2,17 +2,18 @@
 
 import EnlaceWhatsApp from "@/compartido/componentes/EnlaceWhatsApp";
 import DrawerDeslizable from "@/compartido/componentes/DrawerDeslizable";
-import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
+import HideImageOutlinedIcon from "@mui/icons-material/HideImageOutlined";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import ImagenPublicacion from "@/modulos/publicaciones/componentes/ImagenPublicacion";
 import Dialog from "@mui/material/Dialog";
 import CloseIcon from "@mui/icons-material/Close";
 
-import type { PublicacionListado } from "@/modulos/consulta-mercado/acciones/PublicacionesOperador";
-import type { PublicacionProductorListado } from "@/modulos/consulta-mercado/acciones/PublicacionesProductor";
-import TextoAjustable from "./TextoAjustable";
-
+import type { PublicacionListado } from "@/modulos/consulta-mercado/consultas/consultas-publicaciones-operador";
+import type { PublicacionProductorListado } from "@/modulos/consulta-mercado/consultas/consultas-publicaciones-productor";
+import TextoAjustable from "../../../../../compartido/componentes/TextoAjustable";
 import styles from "./DrawerPublicacionPerfil.module.css";
+import ComentarioPublicacion from "@/modulos/publicaciones/componentes/drawer-publicacion/ComentarioPublicacion";
+import { formatearEmpaquetado } from "@/modulos/publicaciones/empaquetado-publicacion";
 
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useEffect, useRef, useState } from "react";
@@ -22,6 +23,17 @@ interface DrawerPublicacionProps {
     onOpenChange: (open: boolean) => void;
     publicacion: PublicacionListado | PublicacionProductorListado | null;
 }
+
+const registrarContactoWhatsApp = (tipo: "OPERADOR" | "PRODUCTOR", entidadId: number) => {
+    fetch("/api/estadisticas/whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo, entidadId }),
+        keepalive: true,
+    }).catch((err) => {
+        console.error("Error al registrar contacto:", err);
+    });
+};
 
 export function DrawerPublicacionPerfil({ publicacion, open, onOpenChange }: DrawerPublicacionProps) {
     const esWeb = useMediaQuery("(min-width: 768px)");
@@ -99,9 +111,9 @@ export function DrawerPublicacionPerfil({ publicacion, open, onOpenChange }: Dra
                                     <div className={styles.marcoImagen}>
                                         <div className={styles.contenedorImagen}>
                                             <ImagenPublicacion key={claveFoto} src={publicacion.foto} alt={`Foto de ${publicacion.especie}`} loading="eager" onLoad={() => setFotoPreparada(claveFoto)} fill sizes="(min-width: 768px) 400px, 160px" className={styles.imagen} onError={() => setFotoPreparada(claveFoto)} reemplazo={
-                                                <div className={styles.sinFoto}>
-                                                    <ImageOutlinedIcon className={styles.iconoFoto} />
-                                                    Foto
+                                                <div className={styles.sinFoto} role="img" aria-label="Sin foto disponible">
+                                                    <HideImageOutlinedIcon className={styles.iconoFoto} aria-hidden="true" />
+                                                    <span>Sin foto disponible</span>
                                                 </div>
                                             } />
                                             {publicacion.foto && (
@@ -124,8 +136,8 @@ export function DrawerPublicacionPerfil({ publicacion, open, onOpenChange }: Dra
                             </div>
                             <div className={styles.bloqueMedio}>
                                 <div className={styles.informacionDetallada}>
-                                    <span className={styles.nombreInformacion}>Presentación</span>
-                                    <span className={styles.valorInformacion}>{publicacion.presentacion?.trim() || "-"}</span>
+                                    <span className={styles.nombreInformacion}>Empaquetado</span>
+                                    <span className={styles.valorInformacion}>{formatearEmpaquetado(publicacion.envase, publicacion.kilos) || "-"}</span>
                                 </div>
                                 <div className={styles.informacionDetallada}>
                                     <span className={styles.nombreInformacion}>Calibre</span>
@@ -136,7 +148,7 @@ export function DrawerPublicacionPerfil({ publicacion, open, onOpenChange }: Dra
                                     <span className={styles.valorInformacion}>{publicacion.categoria?.trim() || "-"}</span>
                                 </div>
                                 <div className={styles.informacionDetallada}>
-                                    <span className={styles.nombreInformacion}>Unidades ({publicacion.presentacion?.trim() || "-"})</span>
+                                    <span className={styles.nombreInformacion}>Unidades</span>
                                     <span className={styles.valorInformacion}>{publicacion.cantidadUnidades ?? "-"}</span>
                                 </div>
                                 <div className={styles.informacionDetallada}>
@@ -148,10 +160,11 @@ export function DrawerPublicacionPerfil({ publicacion, open, onOpenChange }: Dra
                                     <time dateTime={publicacion.fecha} className={styles.valorInformacion}>{fechaFormateada}</time>
                                 </div>
                             </div>
+                            <ComentarioPublicacion comentario={publicacion.comentario} />
                         </div>
-                        <div className={`${styles.pie} ${necesitaScroll ? styles.pieConScroll : ""}`}>
+                        <div className={`${styles.pie} ${necesitaScroll ? styles.pieConScroll : ""}`} data-acciones-modal>
                             <div className={styles.bloqueBotones}>
-                                <EnlaceWhatsApp numero={numeroWhatsApp} mensaje={mensajeWhatsApp} className={styles.botonWhatsApp} aria-label={`Contactar a ${usuario.nombreFantasia} por WhatsApp`}>
+                                <EnlaceWhatsApp numero={numeroWhatsApp} mensaje={mensajeWhatsApp} onClick={() => registrarContactoWhatsApp(publicacion.tipoPublicacion, usuario.id)} className={`boton-primario ${styles.botonWhatsApp}`} aria-label={`Contactar a ${usuario.nombreFantasia} por WhatsApp`}>
                                     <WhatsAppIcon className={styles.iconoWhatsApp} aria-hidden="true" />
                                     <span>WhatsApp</span>
                                 </EnlaceWhatsApp>
@@ -170,9 +183,9 @@ export function DrawerPublicacionPerfil({ publicacion, open, onOpenChange }: Dra
                         </button>
                         <div className={styles.fotoAmpliada}>
                             <ImagenPublicacion loading="eager" key={`${publicacion.id}-${publicacion.foto}`} src={publicacion?.foto ?? null} alt={`Foto ampliada de ${publicacion?.especie ?? ""}`} fill sizes="(min-width: 832px) 50rem, (min-width: 768px) calc(100vw - 2rem), (min-width: 536px) 32rem, calc(100vw - 1.5rem)" className={styles.imagenAmpliada}  reemplazo={
-                                <div className={styles.sinFoto}>
-                                    <ImageOutlinedIcon className={styles.iconoFoto} />
-                                    Foto
+                                <div className={styles.sinFoto} role="img" aria-label="Sin foto disponible">
+                                    <HideImageOutlinedIcon className={styles.iconoFoto} aria-hidden="true" />
+                                    <span>Sin foto disponible</span>
                                 </div>
                             } />
                         </div>

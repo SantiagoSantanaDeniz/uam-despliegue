@@ -1,31 +1,40 @@
 "use client";
 
+import { fetchConSesion } from "@/modulos/identidad-acceso/autenticacion/cliente-sesion";
+
 import { useMemo, useRef, useState } from "react";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import SearchOffOutlinedIcon from "@mui/icons-material/SearchOffOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import EstadoVacio from "@/compartido/componentes/EstadoVacio";
-import NotificacionToast, { useNotificacionToast } from "@/compartido/componentes/NotificacionToast";
+import { useNotificacionToast } from "@/compartido/componentes/NotificacionToast";
+import AvisoErrorToast from "@/compartido/componentes/AvisoErrorToast";
 import { useRouter } from "next/navigation";
-import HojasDecorativas from "../../../../compartido/HojasDecorativas";
+import EncabezadoPagina from "../../../../compartido/componentes/EncabezadoPagina";
 import { ConfirmModal } from "../../../../compartido/componentes/ConfirmModal";
 import DrawerEditarPublicacion from "../../operadores/componentes/DrawerEditarPublicacion";
-import type { Publicacion } from "../tipos";
-import type { PublicacionParaEditar, OpcionesEdicionPublicacion, CambiosPublicacionOperador } from "../../operadores/tipos";
+import type { Publicacion } from "../../tipos";
+import type { PublicacionParaEditar, CambiosPublicacionOperador } from "../../operadores/tipos";
+import type { OpcionesEdicionPublicacion } from "../../catalogos/tipos";
 import NuevaPublicacion from "../../operadores/componentes/NuevaPublicacion";
-import FiltrosPublicaciones, { compararPublicacionesPorPrioridad } from "../../filtros/FiltrosPublicaciones";
-import type { PublicacionListado } from "../../../consulta-mercado/acciones/PublicacionesOperador";
+import FiltrosPublicaciones from "../../filtros/FiltrosPublicaciones";
+import { compararPublicacionesOperador } from "../../filtros/ordenar-publicaciones";
+import type { PublicacionListado } from "../../../consulta-mercado/consultas/consultas-publicaciones-operador";
 import TarjetaPublicacion from "./TarjetaPublicacion";
 import { cargarPublicacionesMiMercado } from "../acciones";
-import { useActualizacionesPublicaciones } from "../../tiempo-real/use-actualizaciones-publicaciones";
+import { useActualizacionesPublicaciones } from "../../tiempo-real/useActualizacionesPublicaciones";
 import styles from "./MiMercado.module.css";
-import { useCompartirPublicacion } from "../use-compartir-publicacion";
+import { useCompartirPublicacion } from "../hooks/useCompartirPublicacion";
+import { useSeleccionPublicacion } from "../hooks/useSeleccionPublicacion";
 
 const obtenerNombreOperador = (publicacion: PublicacionListado) => publicacion.operador.nombreFantasia;
 
 type Props = {
     operadorId: number;
     nombreOperador?: string;
+    enLicencia?: boolean;
     abrirAltaInicial?: boolean;
+    publicacionInicialId?: number | null;
     puedeCrear: boolean;
     puedeModificar: boolean;
     puedeEliminar: boolean;
@@ -34,20 +43,20 @@ type Props = {
     opcionesEdicion: OpcionesEdicionPublicacion;
 };
 
-export default function MiMercado({ operadorId, nombreOperador = "", abrirAltaInicial = false, puedeCrear, puedeModificar, puedeEliminar, publicaciones, incrementoPrecio, opcionesEdicion }: Props) {
+export default function MiMercado({ operadorId, nombreOperador = "", enLicencia = false, abrirAltaInicial = false, publicacionInicialId = null, puedeCrear, puedeModificar, puedeEliminar, publicaciones, incrementoPrecio, opcionesEdicion }: Props) {
     const router = useRouter();
     const [altaAbierta, setAltaAbierta] = useState(abrirAltaInicial && puedeCrear);
-    const [seleccion, setSeleccion] = useState<{ publicacion: Publicacion; listado: Publicacion[] } | null>(null);
     const [listadoRecargado, setListadoRecargado] = useState<{ origen: Publicacion[]; datos: Publicacion[] } | null>(null);
     const [sincronizando, setSincronizando] = useState(false);
     const ultimaRecarga = useRef(0);
     const [publicacionPendiente, setPublicacionPendiente] = useState<Publicacion | null>(null);
     const [eliminando, setEliminando] = useState(false);
     const [error, setError] = useState("");
-    const { notificacion, notificar, cerrarNotificacion } = useNotificacionToast();
+    const { notificar } = useNotificacionToast();
     const [idsEliminados, setIdsEliminados] = useState<number[]>([]);
     const publicacionesActuales = listadoRecargado?.origen === publicaciones ? listadoRecargado.datos : publicaciones;
     const publicacionesVigentes = useMemo(() => publicacionesActuales.filter((publicacion) => !idsEliminados.includes(publicacion.id)), [publicacionesActuales, idsEliminados]);
+    const { seleccionId, setSeleccionId, avisoPublicacion } = useSeleccionPublicacion(publicacionInicialId, publicacionesVigentes);
     const publicacionesParaFiltros = useMemo<PublicacionListado[]>(() => publicacionesVigentes.map((publicacion) => ({
         id: publicacion.id,
         precio: publicacion.precio === null ? null : Number(publicacion.precio),
@@ -55,16 +64,18 @@ export default function MiMercado({ operadorId, nombreOperador = "", abrirAltaIn
         foto: publicacion.foto,
         especie: publicacion.especie.nombreEspecie,
         variedad: publicacion.variedad?.nombreVariedad ?? "",
-        presentacion: publicacion.presentacion?.nombrePresentacion ?? "",
-        cantidadUnidades: publicacion.cantidadUnidades === null ? null : Number(publicacion.cantidadUnidades),
+        envase: publicacion.envase?.nombreEnvase ?? "",
+        kilos: publicacion.kilos?.valor ?? "",
+        cantidadUnidades: publicacion.cantidadUnidades == null ? null : Number(publicacion.cantidadUnidades),
+        comentario: publicacion.comentario,
         categoria: publicacion.categoria?.nombreCategoria ?? "",
         calibre: publicacion.calibre?.nombreCalibre ?? "",
         codigoCalibre: publicacion.calibre?.codigoCalibre ?? "",
-        pais: "",
+        pais: opcionesEdicion.paises.find((pais) => pais.id === publicacion.paisId)?.nombre ?? "",
         tipoPublicacion: "OPERADOR",
         operador: { id: operadorId, nombreFantasia: nombreOperador, whatsApp: "" },
-    })), [publicacionesVigentes, operadorId, nombreOperador]);
-    const [publicacionesFiltradas, setPublicacionesFiltradas] = useState<PublicacionListado[]>(() => [...publicacionesParaFiltros].sort(compararPublicacionesPorPrioridad));
+    })), [publicacionesVigentes, operadorId, nombreOperador, opcionesEdicion.paises]);
+    const [publicacionesFiltradas, setPublicacionesFiltradas] = useState<PublicacionListado[]>(() => [...publicacionesParaFiltros].sort((a, b) => compararPublicacionesOperador(a, b, "prioridad")));
     const publicacionesPorId = new Map(publicacionesVigentes.map((publicacion) => [publicacion.id, publicacion]));
     const publicacionesVisibles: Publicacion[] = [];
     for (const publicacionFiltrada of publicacionesFiltradas) {
@@ -72,10 +83,7 @@ export default function MiMercado({ operadorId, nombreOperador = "", abrirAltaIn
         if (publicacion) publicacionesVisibles.push(publicacion);
     }
 
-    let publicacionSeleccionada = seleccion?.publicacion ?? null;
-    if (seleccion && seleccion.listado !== publicacionesActuales) {
-        publicacionSeleccionada = publicacionesActuales.find((publicacion) => publicacion.id === seleccion.publicacion.id) ?? null;
-    }
+    const publicacionSeleccionada = publicacionesPorId.get(seleccionId ?? -1) ?? null;
     const { compartir, preparandoFoto, compartiendo } = useCompartirPublicacion(publicacionSeleccionada, nombreOperador, notificar);
 
     const publicacionParaEditar: PublicacionParaEditar | null = publicacionSeleccionada ? {
@@ -85,24 +93,29 @@ export default function MiMercado({ operadorId, nombreOperador = "", abrirAltaIn
         variedadId: publicacionSeleccionada.variedad?.id ?? null,
         especie: publicacionSeleccionada.especie.nombreEspecie,
         variedad: publicacionSeleccionada.variedad?.nombreVariedad ?? "",
-        presentacion: publicacionSeleccionada.presentacion?.nombrePresentacion ?? "",
+        envase: publicacionSeleccionada.envase?.nombreEnvase ?? "",
+        kilos: publicacionSeleccionada.kilos?.valor ?? "",
         cantidadUnidades: publicacionSeleccionada.cantidadUnidades,
+        comentario: publicacionSeleccionada.comentario,
         categoria: publicacionSeleccionada.categoria?.nombreCategoria ?? "",
         calibre: publicacionSeleccionada.calibre?.nombreCalibre ?? "",
         precio: publicacionSeleccionada.precio,
         foto: publicacionSeleccionada.foto,
+        estadoFoto: publicacionSeleccionada.estadoFoto,
+        estadoVigencia: publicacionSeleccionada.estadoVigencia,
         fecha: publicacionSeleccionada.fecha,
+        fechaVigencia: publicacionSeleccionada.fechaVigencia,
         version: publicacionSeleccionada.version,
         categoriaId: publicacionSeleccionada.categoria?.id ?? null,
         calibreId: publicacionSeleccionada.calibre?.id ?? null,
-        presentacionId: publicacionSeleccionada.presentacion?.id ?? null,
+        envaseId: publicacionSeleccionada.envase?.id ?? null,
+        kilosId: publicacionSeleccionada.kilos?.id ?? null,
         paisId: publicacionSeleccionada.paisId,
         disponible: publicacionSeleccionada.publicacionDisponible,
     } : null;
 
     function abrirAlta() {
         setError("");
-        cerrarNotificacion();
         setAltaAbierta(true);
     }
 
@@ -129,12 +142,11 @@ export default function MiMercado({ operadorId, nombreOperador = "", abrirAltaIn
                 }) };
             });
             setIdsEliminados((actuales) => actuales.filter((id) => datos.some((publicacion) => publicacion.id === id)));
-            setSeleccion((actual) => actual && datos.some((publicacion) => publicacion.id === actual.publicacion.id) ? actual : null);
+            setSeleccionId((actual) => actual !== null && datos.some((publicacion) => publicacion.id === actual) ? actual : null);
             setPublicacionPendiente((actual) => actual && datos.some((publicacion) => publicacion.id === actual.id) ? actual : null);
             return datos;
         } catch {
             if (recarga !== ultimaRecarga.current) return false;
-            cerrarNotificacion();
             setError("No se pudo actualizar el listado. Recargá la página.");
             return false;
         } finally {
@@ -143,21 +155,18 @@ export default function MiMercado({ operadorId, nombreOperador = "", abrirAltaIn
     }
 
     function publicacionCreada(aviso: string) {
+        notificar(aviso, "success");
         cerrarAlta();
-        void sincronizarPublicaciones().then((actualizado) => {
-            if (actualizado) notificar(aviso, "success");
-        });
+        void sincronizarPublicaciones();
     }
 
     function consultarPublicacion(publicacion: Publicacion) {
         setError("");
-        cerrarNotificacion();
-        setSeleccion({ publicacion, listado: publicacionesActuales });
+        setSeleccionId(publicacion.id);
     }
 
     function solicitarBaja(publicacion: Publicacion) {
         setError("");
-        cerrarNotificacion();
         setPublicacionPendiente(publicacion);
     }
 
@@ -171,7 +180,7 @@ export default function MiMercado({ operadorId, nombreOperador = "", abrirAltaIn
         formulario.set("cambios", JSON.stringify(cambios));
         if (fotoNueva) formulario.set("fotografia", fotoNueva);
 
-        const respuesta = await fetch(`/api/publicaciones/${publicacionSeleccionada.id}?operadorId=${operadorId}`, { method: "PATCH", body: formulario });
+        const respuesta = await fetchConSesion(`/api/publicaciones/${publicacionSeleccionada.id}?operadorId=${operadorId}`, { method: "PATCH", body: formulario });
         const resultado = await respuesta.json();
         if (!respuesta.ok) {
             if (respuesta.status === 404) {
@@ -182,14 +191,12 @@ export default function MiMercado({ operadorId, nombreOperador = "", abrirAltaIn
                 }
             }
             if (respuesta.status === 409) await sincronizarPublicaciones();
-            throw new Error(resultado.errores?.[0] ?? "No se pudieron guardar los cambios.");
+            throw new Error(resultado.errores?.join("\n") || "No se pudieron guardar los cambios.");
         }
 
         const datos = await sincronizarPublicaciones();
-        if (datos) {
-            const sigueDisponible = datos.some((publicacion) => publicacion.id === publicacionSeleccionada.id);
-            notificar(sigueDisponible ? resultado.mensaje ?? "Publicación actualizada." : "La publicación ya no está disponible. Se actualizó el listado.", sigueDisponible ? "success" : "info");
-        }
+        const eliminada = datos && !datos.some((publicacion) => publicacion.id === publicacionSeleccionada.id);
+        notificar(eliminada ? "La publicación ya no está disponible. Se actualizó el listado." : resultado.mensaje ?? "Publicación actualizada.", eliminada ? "info" : "success");
     }
 
     async function eliminarPublicacion() {
@@ -198,27 +205,26 @@ export default function MiMercado({ operadorId, nombreOperador = "", abrirAltaIn
         setEliminando(true);
         setError("");
         try {
-            const respuesta = await fetch(`/api/publicaciones/${publicacion.id}?operadorId=${operadorId}`, { method: "DELETE" });
+            const respuesta = await fetchConSesion(`/api/publicaciones/${publicacion.id}?operadorId=${operadorId}`, { method: "DELETE" });
             const resultado = await respuesta.json();
             if (!respuesta.ok) {
                 if (respuesta.status === 404) {
                     const datos = await sincronizarPublicaciones();
                     if (datos && !datos.some((actual) => actual.id === publicacion.id)) {
                         setPublicacionPendiente(null);
-                        setSeleccion((actual) => actual?.publicacion.id === publicacion.id ? null : actual);
+                        setSeleccionId((actual) => actual === publicacion.id ? null : actual);
                         notificar("La publicación ya había sido eliminada. Se actualizó el listado.", "info");
                         return;
                     }
                 }
-                throw new Error(resultado.errores?.[0] ?? "No se pudo eliminar la publicación.");
+                throw new Error(resultado.errores?.join("\n") || "No se pudo eliminar la publicación.");
             }
 
             setIdsEliminados((actuales) => [...actuales, publicacion.id]);
             setPublicacionPendiente(null);
-            setSeleccion((actual) => actual?.publicacion.id === publicacion.id ? null : actual);
-            if (await sincronizarPublicaciones()) {
-                notificar(resultado.mensaje ?? "Publicación eliminada.", "success");
-            }
+            setSeleccionId((actual) => actual === publicacion.id ? null : actual);
+            await sincronizarPublicaciones();
+            notificar(resultado.mensaje ?? "Publicación eliminada.", "success");
         } catch (error) {
             notificar(error instanceof Error ? error.message : "No se pudo conectar con el servidor.", "error");
             setPublicacionPendiente(null);
@@ -242,35 +248,23 @@ export default function MiMercado({ operadorId, nombreOperador = "", abrirAltaIn
             <div className="contenedor-pagina secciones-pagina relative z-10">
 
                 {/* Encabezado */}
-                <header className="encabezado-pagina relative isolate overflow-hidden">
-                    <HojasDecorativas />
-                    <div className="relative z-10 flex flex-col gap-[var(--espacio-controles)] sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                            <p className="mb-[var(--espacio-textos)] text-[length:var(--tamano-texto-auxiliar)] font-bold uppercase tracking-widest text-[var(--color-subtitulo-pagina)]">
-                                Mis publicaciones
-                            </p>
+                <EncabezadoPagina
+                    titulo="Mi Mercado"
+                    subtitulo={`${publicacionesVigentes.length} ${publicacionesVigentes.length === 1 ? "publicación" : "publicaciones"}`}
+                />
 
-                            <h1 className="titulo-pagina">
-                                Mi Mercado
-                            </h1>
-
-                            <p className="subtitulo-pagina mt-[var(--espacio-textos)]">
-                                Consultá los productos que tenés publicados.
-                            </p>
-                        </div>
-
-                        <p className="subtitulo-pagina">
-                            {publicacionesVigentes.length}{" "}{publicacionesVigentes.length === 1 ? "publicación" : "publicaciones"}
-                        </p>
-                    </div>
-                </header>
-
-                {error && <p className={styles.mensajeError} role="alert">{error}</p>}
-
+                <AvisoErrorToast mensaje={error} cerrarAlCorregir={false} />
+                <AvisoErrorToast mensaje={avisoPublicacion} tipo="warning" />
                 {publicacionesVigentes.length > 0 && (
                     <div className={styles.filtros}>
                         <FiltrosPublicaciones obtenerNombreFantasia={obtenerNombreOperador} publicaciones={publicacionesParaFiltros} especieFiltro="" ordenInicial="prioridad" alFiltrar={setPublicacionesFiltradas} />
                     </div>
+                )}
+                {enLicencia && (
+                    <p className={styles.avisoLicencia} role="status">
+                        <WarningAmberOutlinedIcon aria-hidden="true" />
+                        <span>Estás de licencia, productos ocultos al público</span>
+                    </p>
                 )}
                 <div className={`${styles.encabezadoCatalogo} flex-wrap`}>
                     <h2 className={styles.titulo}>Publicaciones</h2>
@@ -293,7 +287,7 @@ export default function MiMercado({ operadorId, nombreOperador = "", abrirAltaIn
                         anunciar={false}
                     />
                 ) : (
-                    <div className="grid grid-cols-1 gap-[var(--espacio-controles)] md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 tarjetas-compactas-mercado">
+                    <div className="grilla-tarjetas gap-[var(--espacio-controles)]">
                         {publicacionesVisibles.map((pub) => (
                             <TarjetaPublicacion
                                 key={pub.id}
@@ -310,15 +304,14 @@ export default function MiMercado({ operadorId, nombreOperador = "", abrirAltaIn
                 )}
             </div>
             {puedeCrear && altaAbierta && <NuevaPublicacion operadorId={operadorId} incrementoPrecio={incrementoPrecio} abierto={altaAbierta} alCerrar={cerrarAlta} alCrear={publicacionCreada} />}
-            <DrawerEditarPublicacion incrementoPrecio={incrementoPrecio} abierto={publicacionSeleccionada !== null} alCerrar={() => setSeleccion(null)} alGuardar={guardarCambios} publicacion={publicacionParaEditar} modoInicial="consulta" puedeModificar={puedeModificar} puedeEliminar={puedeEliminar} alEliminar={() => { if (publicacionSeleccionada) solicitarBaja(publicacionSeleccionada); }}
-            alCompartir={() => { cerrarNotificacion(); void compartir(); }}
+            <DrawerEditarPublicacion mostrarAvisoFoto incrementoPrecio={incrementoPrecio} abierto={publicacionSeleccionada !== null} alCerrar={() => setSeleccionId(null)} alGuardar={guardarCambios} publicacion={publicacionParaEditar} modoInicial="consulta" puedeModificar={puedeModificar} puedeEliminar={puedeEliminar} alEliminar={() => { if (publicacionSeleccionada) solicitarBaja(publicacionSeleccionada); }}
+            alCompartir={() => { void compartir(); }}
             compartiendo={compartiendo || preparandoFoto}
-            eliminando={eliminando} actualizando={sincronizando} errorConsulta={error} {...opcionesEdicion}>
+            eliminando={eliminando} actualizando={sincronizando} {...opcionesEdicion}>
 
                 <ConfirmModal abierto={publicacionPendiente !== null} titulo="Eliminar publicación" descripcion={publicacionPendiente ? `¿Querés eliminar la publicación de ${publicacionPendiente.especie.nombreEspecie}? Esta acción no se puede deshacer.` : ""} textoConfirmar="Sí, eliminar" procesando={eliminando} alCancelar={() => { if (!eliminando) setPublicacionPendiente(null); }} alConfirmar={() => void eliminarPublicacion()} />
 
             </DrawerEditarPublicacion>
-            <NotificacionToast notificacion={notificacion} alCerrar={cerrarNotificacion} />
         </main>
     );
 }

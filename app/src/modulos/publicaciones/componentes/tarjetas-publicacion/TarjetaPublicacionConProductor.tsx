@@ -1,14 +1,9 @@
+import { formatearEmpaquetado } from "@/modulos/publicaciones/empaquetado-publicacion";
+import { formatearPrecio } from "@/compartido/formatear-precio";
 import ImagenPublicacion from "../ImagenPublicacion";
-import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
-import type { PublicacionProductorListado } from "../../../consulta-mercado/acciones/PublicacionesProductor";
+import HideImageOutlinedIcon from "@mui/icons-material/HideImageOutlined";
+import type { PublicacionProductorListado } from "../../../consulta-mercado/consultas/consultas-publicaciones-productor";
 import styles from "./TarjetaPublicacionConOperador.module.css";
-
-const formatoPrecio = new Intl.NumberFormat("es-UY", {
-    style: "currency",
-    currency: "UYU",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-});
 
 type TarjetaPublicacionProductorProps = {
     publicacion: PublicacionProductorListado;
@@ -16,6 +11,7 @@ type TarjetaPublicacionProductorProps = {
 };
 
 export default function TarjetaPublicacionConProductor({ publicacion, onClick }: TarjetaPublicacionProductorProps) {
+    const empaquetado = formatearEmpaquetado(publicacion.envase, publicacion.kilos);
     const nombreProducto = publicacion.variedad && publicacion.variedad !== "-" ? `${publicacion.especie} - ${publicacion.variedad}` : publicacion.especie;
     const nombreProductor = publicacion.productor.nombreFantasia;
     return (
@@ -25,9 +21,8 @@ export default function TarjetaPublicacionConProductor({ publicacion, onClick }:
                     sizes="(max-width: 380px) 72px, (max-width: 767px) 96px, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 234px"
                     className={styles.imagen}
                     reemplazo={
-                        <div className={styles.sinFoto}>
-                            <ImageOutlinedIcon className={styles.iconoFoto} />
-                            <span className={styles.textoSinFotoMobile}> Foto </span>
+                        <div className={styles.sinFoto} role="img" aria-label="Sin foto disponible">
+                            <HideImageOutlinedIcon className={styles.iconoFoto} aria-hidden="true" />
                             <span className={styles.textoSinFotoWeb}> Sin foto disponible </span>
                         </div>
                     }
@@ -66,10 +61,10 @@ export default function TarjetaPublicacionConProductor({ publicacion, onClick }:
                             {publicacion.precio == null ? (
                                 <span className={styles.consultarPrecio}> Consultar precio </span>
                             ) : (
-                                <span className={styles.precio}> {formatoPrecio.format(publicacion.precio)} </span>
+                                <span className={styles.precio}> {formatearPrecio(publicacion.precio)} </span>
                             )}
-                            {publicacion.presentacion?.trim() && publicacion.presentacion.trim() !== "-" && (
-                                <span className={styles.presentacionPrecio} title={`por ${publicacion.presentacion.trim()}`}> por {publicacion.presentacion.trim()} </span>
+                            {empaquetado && (
+                                <span className={styles.presentacionPrecio} title={`por ${empaquetado}`}> por {empaquetado} </span>
                             )}
                         </div>
                     </div>

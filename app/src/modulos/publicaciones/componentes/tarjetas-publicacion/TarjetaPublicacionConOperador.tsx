@@ -1,14 +1,9 @@
+import { formatearEmpaquetado } from "@/modulos/publicaciones/empaquetado-publicacion";
+import { formatearPrecio } from "@/compartido/formatear-precio";
 import ImagenPublicacion from "../ImagenPublicacion";
-import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
-import type { PublicacionListado } from "../../../consulta-mercado/acciones/PublicacionesOperador";
+import HideImageOutlinedIcon from "@mui/icons-material/HideImageOutlined";
+import type { PublicacionListado } from "../../../consulta-mercado/consultas/consultas-publicaciones-operador";
 import styles from "./TarjetaPublicacionConOperador.module.css";
-
-const formatoPrecio = new Intl.NumberFormat("es-UY", {
-    style: "currency",
-    currency: "UYU",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2
-});
 
 type TarjetaPublicacionProps = {
     publicacion: PublicacionListado;
@@ -16,6 +11,7 @@ type TarjetaPublicacionProps = {
 };
 
 export default function TarjetaPublicacionConOperador({publicacion, onClick}: TarjetaPublicacionProps) {
+    const empaquetado = formatearEmpaquetado(publicacion.envase, publicacion.kilos);
     const nombreProducto = publicacion.variedad && publicacion.variedad !== "-" ? `${publicacion.especie} - ${publicacion.variedad}` : publicacion.especie;
     const nombreOperador = publicacion.operador.nombreFantasia;
 
@@ -23,11 +19,8 @@ export default function TarjetaPublicacionConOperador({publicacion, onClick}: Ta
         <button type="button" className={styles.tarjeta} onClick={onClick} aria-label={`Ver detalles de ${nombreProducto}`}>
             <div className={styles.contenedorImagen}>
                 <ImagenPublicacion src={publicacion.foto} alt={`Foto de ${nombreProducto}`} fill loading="lazy" sizes="(max-width: 419px) 72px, (max-width: 700px) 96px, (max-width: 774.4px) calc(50vw - 24px), (max-width: 1027.2px) calc(33.333vw - 21.333px), (max-width: 1279px) calc(25vw - 20px), 234px" className={styles.imagen} reemplazo={
-                    <div className={styles.sinFoto}>
-                        <ImageOutlinedIcon className={styles.iconoFoto} />
-                        <span className={styles.textoSinFotoMobile}>
-                            Foto
-                        </span>
+                    <div className={styles.sinFoto} role="img" aria-label="Sin foto disponible">
+                        <HideImageOutlinedIcon className={styles.iconoFoto} aria-hidden="true" />
                         <span className={styles.textoSinFotoWeb}>
                             Sin foto disponible
                         </span>
@@ -90,12 +83,12 @@ export default function TarjetaPublicacionConOperador({publicacion, onClick}: Ta
                                 </span>
                             ) : (
                                 <span className={styles.precio}>
-                                    {formatoPrecio.format(publicacion.precio)}
+                                    {formatearPrecio(publicacion.precio)}
                                 </span>
                             )}
-                            {publicacion.presentacion?.trim() && publicacion.presentacion.trim() !== "-" && (
-                                <span className={styles.presentacionPrecio} title={`por ${publicacion.presentacion.trim()}`}>
-                                    por {publicacion.presentacion.trim()}
+                            {empaquetado && (
+                                <span className={styles.presentacionPrecio} title={`por ${empaquetado}`}>
+                                    por {empaquetado}
                                 </span>
                             )}
                         </div>

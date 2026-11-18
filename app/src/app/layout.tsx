@@ -3,9 +3,11 @@ import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import '@/estilos/globals.css';
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import EncabezadoOperador from "@/compartido/EncabezadoOperador";
-import PiePagina from "@/compartido/PiePagina";
-import TemaAplicacion from "@/compartido/TemaAplicacion";
+import EncabezadoConSesion from "@/aplicacion/navegacion/EncabezadoConSesion";
+import PiePagina from "@/compartido/componentes/PiePagina";
+import TemaAplicacion from "@/aplicacion/TemaAplicacion";
+import SeguimientoVisita from "@/compartido/componentes/SeguimientoVisita";
+import { ProveedorNotificacionesToast } from "@/compartido/componentes/NotificacionToast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,9 +37,12 @@ export default function RootLayout({
       <body className="min-h-dvh flex flex-col">
         <AppRouterCacheProvider>
           <TemaAplicacion>
-            <EncabezadoOperador />
-            {children}
-            <PiePagina />
+            <ProveedorNotificacionesToast>
+              <EncabezadoConSesion />
+              <SeguimientoVisita />
+              <div className="contenido-aplicacion">{children}</div>
+              <PiePagina />
+            </ProveedorNotificacionesToast>
           </TemaAplicacion>
         </AppRouterCacheProvider>
       </body>

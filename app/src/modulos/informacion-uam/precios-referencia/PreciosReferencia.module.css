@@ -16,6 +16,18 @@
     font-size: var(--tamano-texto-secundario);
 }
 
+.enlaceHistorico {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+
+.enlaceHistorico:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
 .contexto strong {
     color: var(--color-secondary);
 }
@@ -80,25 +92,8 @@
     grid-row: 2;
 }
 .botonMasFiltros {
-    display: inline-flex;
-    align-items: center;
     justify-self: start;
-    gap: var(--espacio-textos);
     grid-column: 1 / -1;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--color-primary);
-    font-size: var(--tamano-texto-secundario);
-    font-weight: 600;
-    cursor: pointer;
-}
-.botonMasFiltros:hover {
-    text-decoration: underline;
-}
-.iconoExpandir {
-    width: 1.25rem;
-    height: 1.25rem;
 }
 .filtrosAdicionales {
     grid-column: 1 / -1;
@@ -108,14 +103,14 @@
     overflow: hidden;
     visibility: hidden;
     transition:
-        height 0.18s ease-out,
-        visibility 0s linear 0.18s;
+        height var(--duracion-despliegue-filtros) var(--curva-despliegue-filtros),
+        visibility 0s linear var(--duracion-despliegue-filtros);
 }
 .filtrosAdicionales.filtrosAbiertos {
     height: var(--altura-filtros, 0px);
     visibility: visible;
     transition:
-        height 0.18s ease-out,
+        height var(--duracion-despliegue-filtros) var(--curva-despliegue-filtros),
         visibility 0s;
 }
 .contenidoAdicional {
@@ -124,20 +119,14 @@
     gap: var(--espacio-controles);
     padding: var(--espacio-controles) 0 0.125rem;
     opacity: 0;
-    transition: opacity 0.08s ease-out;
+    transition: opacity var(--duracion-salida-filtros) var(--curva-despliegue-filtros);
 }
 .filtrosAbiertos .contenidoAdicional {
     opacity: 1;
-    transition: opacity 0.1s ease-out 0.12s;
+    transition: opacity var(--duracion-entrada-filtros) var(--curva-despliegue-filtros) var(--retraso-entrada-filtros);
 }
-.filtroPrecioPor,
-.errorPrecio {
+.filtroPrecioPor {
     grid-column: 1 / -1;
-}
-.errorPrecio {
-    margin: 0;
-    color: var(--color-danger);
-    font-size: var(--tamano-texto-auxiliar);
 }
 .busqueda :global(input[type="search"])::-webkit-search-cancel-button {
     filter: invert(94.63%) sepia(94%) saturate(1606%) hue-rotate(73.59deg) brightness(50.79%) contrast(173.72%);
@@ -152,22 +141,22 @@
     border-color: var(--color-border);
 }
 .campo :global(.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline) {
-    border-color: var(--color-primary);
+    border-color: var(--color-secondary);
 }
 .campo :global(.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline) {
-    border-color: var(--color-primary);
+    border-color: var(--color-secondary);
 }
 .campo :global(.MuiInputLabel-root) {
     font-size: var(--tamano-texto-secundario);
 }
 .campo :global(.MuiInputLabel-root.Mui-focused) {
-    color: var(--color-primary);
+    color: var(--color-secondary);
 }
 .campo :global(.MuiInputBase-input) {
     color: var(--color-foreground);
 }
 .opcionSelect:global(.Mui-selected) {
-    background-color: var(--color-primary-soft) !important;
+    background-color: var(--color-secondary-soft) !important;
 }
 
 .barraOpciones {
@@ -185,14 +174,6 @@
     gap: var(--espacio-inline);
     color: var(--color-foreground);
     font-size: var(--tamano-texto-secundario);
-    cursor: pointer;
-}
-
-.soloReferencias input {
-    width: 1rem;
-    height: 1rem;
-    margin: 0;
-    accent-color: var(--color-primary);
     cursor: pointer;
 }
 
@@ -218,7 +199,7 @@
     padding: 0;
     border: 0;
     background: none;
-    color: var(--color-primary);
+    color: var(--color-secondary);
     font-size: var(--tamano-texto-secundario);
     font-weight: 600;
     cursor: pointer;
@@ -257,7 +238,7 @@
     padding: var(--espacio-controles);
     border-top: 1px solid var(--color-border);
     border-bottom: 1px solid var(--color-border);
-    background: var(--color-primary-soft);
+    background: var(--color-secondary-soft);
     color: var(--color-secondary);
     font-size: var(--tamano-texto-auxiliar);
     font-weight: 700;
@@ -279,13 +260,13 @@
     background: var(--color-surface-muted);
 }
 .tabla tbody tr.filaReferencia {
-    background: var(--color-primary-soft);
+    background: var(--color-secondary-soft);
 }
 .tabla tbody tr.filaReferencia td:first-child {
-    box-shadow: inset 3px 0 var(--color-primary);
+    box-shadow: inset 3px 0 var(--color-secondary);
 }
 .tabla tbody tr:hover {
-    background: var(--color-primary-soft);
+    background: var(--color-secondary-soft);
 }
 
 .producto {
@@ -303,7 +284,7 @@
     display: inline-block;
     padding: var(--espacio-textos) var(--espacio-inline);
     border-radius: var(--radio-control);
-    background: var(--color-primary-soft);
+    background: var(--color-secondary-soft);
     color: var(--color-secondary);
     font-size: var(--tamano-texto-auxiliar);
     font-weight: 700;
@@ -353,47 +334,12 @@
     display: none;
 }
 
-.paginacion {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--espacio-secciones);
-    padding: var(--espacio-controles) var(--padding-panel);
-    color: var(--color-muted-foreground);
-    font-size: var(--tamano-texto-secundario);
-}
-
-.paginacion > div {
-    display: flex;
-    align-items: center;
-    gap: var(--espacio-controles);
-}
-.paginacion button {
-    min-height: var(--alto-control);
-    padding: var(--padding-control);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radio-control);
-    background: var(--color-surface);
-    color: var(--color-secondary);
-    font-size: var(--tamano-texto-secundario);
-    font-weight: 600;
-    cursor: pointer;
-}
-.paginacion button:hover:not(:disabled) {
-    border-color: var(--color-primary);
-    background: var(--color-primary-soft);
-}
-.paginacion button:disabled {
-    color: var(--color-disabled);
-    cursor: default;
-}
-
 @media (min-width: 600px) {
     .filtros {
         grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 
-    .botonMasFiltros {
+    .botonMasFiltros.botonMasFiltros {
         display: none;
     }
 
@@ -459,10 +405,6 @@
         grid-row: 4;
     }
 
-    .errorPrecio {
-        grid-column: 1 / -1;
-        grid-row: 5;
-    }
 }
 
 @media (min-width: 1000px) {
@@ -520,9 +462,6 @@
         grid-row: 2;
     }
 
-    .errorPrecio {
-        grid-row: 3;
-    }
 }
 
 @media (max-width: 900px) {
@@ -557,8 +496,8 @@
         background: var(--color-surface-muted);
     }
     .filaMobile.filaMobileReferencia {
-        background: var(--color-primary-soft);
-        box-shadow: inset 3px 0 var(--color-primary);
+        background: var(--color-secondary-soft);
+        box-shadow: inset 3px 0 var(--color-secondary);
     }
     .filaMobileCabecera {
         display: grid;
@@ -633,13 +572,6 @@
     }
     .tablaCabecera p {
         max-width: 15rem;
-    }
-    .paginacion {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .paginacion > div {
-        justify-content: space-between;
     }
 }
 

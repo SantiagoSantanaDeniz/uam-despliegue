@@ -1,17 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { obtenerDepartamentos } from "@/compartido/departamentos-uruguay";
 import { useRouter } from "next/navigation";
-import NotificacionToast, { useNotificacionToast } from "@/compartido/componentes/NotificacionToast";
+import { useNotificacionToast } from "@/compartido/componentes/NotificacionToast";
 import EstadoVacio from "@/compartido/componentes/EstadoVacio";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
-import DrawerPublicacionProductor from "../../../../publicaciones/mi-mercado/componentes/DrawerPublicacionProductor";
-import type { PublicacionMiMercadoProductor } from "../../../../publicaciones/mi-mercado/consultas-mi-mercado-productor";
-import type { PublicacionPerfilAdminProductor } from "../../acciones/consultas-perfil-productor-admin";
+import DrawerPublicacionProductor from "../../../../publicaciones/productores/componentes/DrawerPublicacionProductor";
+import type { PublicacionMiMercadoProductor } from "../../../../publicaciones/productores/tipos";
+import type { PublicacionPerfilAdminProductor } from "../../consultas/consultas-perfil-productor-admin";
 import TarjetaPublicacionProductorAdmin from "./TarjetaPublicacionProductorAdmin";
 
 type CatalogoProductorAdminProps = {
     publicaciones: PublicacionPerfilAdminProductor[];
+    alCambiarDepartamentos?: (departamentos: string[]) => void;
 };
 
 function paraConsulta(publicacion: PublicacionPerfilAdminProductor): PublicacionMiMercadoProductor {
@@ -23,18 +25,22 @@ function paraConsulta(publicacion: PublicacionPerfilAdminProductor): Publicacion
         foto: publicacion.foto,
         precio: publicacion.precio,
         cantidadUnidades: publicacion.cantidadUnidades,
+        comentario: publicacion.comentario,
         fecha: publicacion.fecha,
+        fechaVigencia: publicacion.fechaVigencia,
         publicacionActiva: true,
         publicacionDisponible: publicacion.disponible,
         especie: { id: publicacion.especieId, nombreEspecie: publicacion.especie, fotoEspecie: null },
         variedad: publicacion.variedadId === null ? null : { id: publicacion.variedadId, nombreVariedad: publicacion.variedad },
-        presentacion: publicacion.presentacionId === null ? null : { id: publicacion.presentacionId, nombrePresentacion: publicacion.presentacion },
+        envase: publicacion.envaseId === null ? null : { id: publicacion.envaseId, nombreEnvase: publicacion.envase },
+        kilos: publicacion.kilosId === null ? null : { id: publicacion.kilosId, valor: publicacion.kilos },
         categoria: publicacion.categoriaId === null ? null : { id: publicacion.categoriaId, nombreCategoria: publicacion.categoria },
         calibre: publicacion.calibreId === null ? null : { id: publicacion.calibreId, codigoCalibre: publicacion.codigoCalibre, nombreCalibre: publicacion.calibre },
         ubicaciones: publicacion.ubicaciones.map((ubicacion, indice) => ({
             id: indice,
             nombreUbicacion: ubicacion.nombre,
             urlMaps: ubicacion.urlMaps,
+            departamento: ubicacion.departamento ?? null,
         })),
     };
 }
@@ -45,7 +51,8 @@ function paraTarjeta(publicacion: PublicacionMiMercadoProductor): PublicacionPer
         publicacionProductorId: publicacion.publicacionProductorId,
         especieId: publicacion.especie.id,
         variedadId: publicacion.variedad?.id ?? null,
-        presentacionId: publicacion.presentacion?.id ?? null,
+        envaseId: publicacion.envase?.id ?? null,
+        kilosId: publicacion.kilos?.id ?? null,
         categoriaId: publicacion.categoria?.id ?? null,
         calibreId: publicacion.calibre?.id ?? null,
         paisId: publicacion.paisId,
@@ -53,24 +60,28 @@ function paraTarjeta(publicacion: PublicacionMiMercadoProductor): PublicacionPer
         foto: publicacion.foto,
         precio: publicacion.precio,
         cantidadUnidades: publicacion.cantidadUnidades,
+        comentario: publicacion.comentario,
         fecha: publicacion.fecha,
+        fechaVigencia: publicacion.fechaVigencia,
         disponible: publicacion.publicacionDisponible,
         especie: publicacion.especie.nombreEspecie,
         variedad: publicacion.variedad?.nombreVariedad ?? "",
-        presentacion: publicacion.presentacion?.nombrePresentacion ?? "",
+        envase: publicacion.envase?.nombreEnvase ?? "",
+        kilos: publicacion.kilos?.valor ?? "",
         categoria: publicacion.categoria?.nombreCategoria ?? "",
         calibre: publicacion.calibre?.nombreCalibre ?? "",
         codigoCalibre: publicacion.calibre?.codigoCalibre ?? "",
         ubicaciones: publicacion.ubicaciones.map((ubicacion) => ({
             nombre: ubicacion.nombreUbicacion,
             urlMaps: ubicacion.urlMaps,
+            departamento: ubicacion.departamento ?? null,
         })),
     };
 }
 
-export default function CatalogoProductorAdmin({ publicaciones }: CatalogoProductorAdminProps) {
+export default function CatalogoProductorAdmin({ publicaciones, alCambiarDepartamentos }: CatalogoProductorAdminProps) {
     const router = useRouter();
-    const { notificacion, notificar, cerrarNotificacion } = useNotificacionToast();
+    const { notificar } = useNotificacionToast();
     const publicacionesConsulta = useMemo(() => publicaciones.map(paraConsulta), [publicaciones]);
     const [seleccionId, setSeleccionId] = useState<number | null>(null);
     const [actualizadas, setActualizadas] = useState<{
@@ -79,6 +90,10 @@ export default function CatalogoProductorAdmin({ publicaciones }: CatalogoProduc
     } | null>(null);
     const publicacionesActuales = actualizadas?.origen === publicaciones ? actualizadas.datos : publicacionesConsulta;
     const seleccionada = publicacionesActuales.find((publicacion) => publicacion.id === seleccionId) ?? null;
+
+    useEffect(() => {
+        alCambiarDepartamentos?.(obtenerDepartamentos(publicacionesActuales.flatMap((publicacion) => publicacion.ubicaciones)));
+    }, [publicacionesActuales, alCambiarDepartamentos]);
 
     function actualizarPublicacion(guardada: PublicacionMiMercadoProductor) {
         setActualizadas((anteriores) => {
@@ -90,7 +105,7 @@ export default function CatalogoProductorAdmin({ publicaciones }: CatalogoProduc
         });
     }
 
-    function eliminarPublicacion(aviso: string) {
+    function eliminarPublicacion(aviso: string, tipo: "success" | "info") {
         setActualizadas((anteriores) => {
             const actuales = anteriores?.origen === publicaciones ? anteriores.datos : publicacionesConsulta;
             return {
@@ -99,17 +114,16 @@ export default function CatalogoProductorAdmin({ publicaciones }: CatalogoProduc
             };
         });
         setSeleccionId((actual) => actual === seleccionId ? null : actual);
-        notificar(aviso, "success");
+        notificar(aviso, tipo);
         router.refresh();
     }
 
     return (
         <>
-            <NotificacionToast notificacion={notificacion} alCerrar={cerrarNotificacion} />
             {publicacionesActuales.length === 0 ? (
                 <EstadoVacio titulo="Sin publicaciones" descripcion="El productor no tiene publicaciones." icono={<Inventory2OutlinedIcon />} anunciar={false} />
             ) : (
-                <ul className="grid grid-cols-1 gap-[var(--espacio-secciones)] md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 tarjetas-compactas">
+                <ul className="grilla-tarjetas gap-[var(--espacio-secciones)]">
                     {publicacionesActuales.map((publicacion) => (
                         <li key={publicacion.id}>
                             <TarjetaPublicacionProductorAdmin

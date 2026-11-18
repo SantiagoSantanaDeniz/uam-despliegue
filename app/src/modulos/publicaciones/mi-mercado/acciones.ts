@@ -1,18 +1,18 @@
 "use server";
 
-import { obtenerSesion } from "../../identidad-acceso/autenticacion/sesiones";
+import { controlarSesionEnAccion, exigirSesionEnAccion } from "../../identidad-acceso/autorizacion/control-acciones";
 import { autorizado } from "../../identidad-acceso/autorizacion/permisos";
 import { ErrorAutorizacion } from "../../identidad-acceso/autorizacion/controles";
 import { revalidatePath } from "next/cache";
-import { obtenerOperadorAutorizado } from "../../usuarios/operadores/operador-actual";
-import { actualizarPrecioPublicacion, incrementarPrecioPublicacion, ConflictoPublicacionError, obtenerPublicacionesDeOperador, PublicacionNoEncontradaError } from "./consultas-mi-mercado";
+import { obtenerOperadorAutorizado } from "../../usuarios/operadores/consultas/operador-actual";
+import { obtenerPublicacionesDeOperador } from "./consultas-mi-mercado";
+import { actualizarPrecioPublicacion, incrementarPrecioPublicacion, ConflictoPublicacionError, PublicacionNoEncontradaError } from "../operadores/operaciones/actualizar-precio-publicacion";
 import { mapearPublicacionesMiMercado } from "./mapear-publicaciones";
 
 export async function cargarPublicacionesMiMercado(operadorId: number) {
-    const sesion = await obtenerSesion();
-    if (!sesion) throw new ErrorAutorizacion(401, "Debe iniciar sesión.");
+    const sesion = await exigirSesionEnAccion();
 
-    const operador = await obtenerOperadorAutorizado(operadorId);
+    const operador = await controlarSesionEnAccion(() => obtenerOperadorAutorizado(operadorId));
 
     if (!autorizado("operador.publicacion.consultarPropias", sesion, operador)) {
         throw new ErrorAutorizacion(403, "No tiene permisos para gestionar las publicaciones de este Operador.");
@@ -35,14 +35,13 @@ export async function incrementarPrecio(publicacionId: number, incremento: numbe
 }
 
 async function cambiarPrecio(publicacionId: number, valor: number | null, operadorId: number | undefined, incrementar: boolean, versionEsperada?: number): Promise<ResultadoActualizarPrecio> {
-    const sesion = await obtenerSesion();
-    if (!sesion) throw new ErrorAutorizacion(401, "Debe iniciar sesión.");
+    const sesion = await exigirSesionEnAccion();
 
     if (operadorId !== undefined && (!Number.isSafeInteger(operadorId) || operadorId <= 0)) {
         throw new Error("El ID del operador debe ser un número entero positivo.");
     }
 
-    const operador = await obtenerOperadorAutorizado(operadorId);
+    const operador = await controlarSesionEnAccion(() => obtenerOperadorAutorizado(operadorId));
 
     if (!autorizado("operador.publicacion.modificar", sesion, operador)) {
         throw new ErrorAutorizacion(403, "No tiene permisos para modificar las publicaciones de este Operador.");

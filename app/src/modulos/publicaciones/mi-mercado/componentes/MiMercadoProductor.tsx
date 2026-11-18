@@ -5,15 +5,18 @@ import YardOutlinedIcon from "@mui/icons-material/YardOutlined";
 import SearchOffOutlinedIcon from "@mui/icons-material/SearchOffOutlined";
 import EstadoVacio from "@/compartido/componentes/EstadoVacio";
 import { useRouter } from "next/navigation";
-import NotificacionToast, { useNotificacionToast } from "@/compartido/componentes/NotificacionToast";
-import HojasDecorativas from "../../../../compartido/HojasDecorativas";
-import type { PublicacionListado } from "../../../consulta-mercado/acciones/PublicacionesOperador";
-import FiltrosPublicaciones, { compararPublicacionesPorPrioridad } from "../../filtros/FiltrosPublicaciones";
-import type { PublicacionMiMercadoProductor } from "../consultas-mi-mercado-productor";
-import DrawerPublicacionProductor from "./DrawerPublicacionProductor";
-import { DrawerAltaPublicacionProductor } from "../../productores/AltaPublicacionProductor";
+import { useNotificacionToast } from "@/compartido/componentes/NotificacionToast";
+import AvisoErrorToast from "@/compartido/componentes/AvisoErrorToast";
+import EncabezadoPagina from "../../../../compartido/componentes/EncabezadoPagina";
+import type { PublicacionListado } from "../../../consulta-mercado/consultas/consultas-publicaciones-operador";
+import FiltrosPublicaciones from "../../filtros/FiltrosPublicaciones";
+import { compararPublicacionesPorPrioridad } from "../../filtros/ordenar-publicaciones";
+import type { PublicacionMiMercadoProductor } from "../../productores/tipos";
+import DrawerPublicacionProductor from "../../productores/componentes/DrawerPublicacionProductor";
+import { DrawerAltaPublicacionProductor } from "../../productores/componentes/AltaPublicacionProductor";
 import TarjetaPublicacionProductor from "./TarjetaPublicacionProductor";
 import styles from "./MiMercado.module.css";
+import { useSeleccionPublicacion } from "../hooks/useSeleccionPublicacion";
 
 const obtenerNombreOperador = (publicacion: PublicacionListado) => publicacion.operador.nombreFantasia;
 
@@ -21,17 +24,18 @@ type Props = {
     publicaciones: PublicacionMiMercadoProductor[];
     nombreProductor?: string;
     productorId?: number;
+    publicacionInicialId?: number | null;
 };
 
-export default function MiMercadoProductor({ publicaciones, nombreProductor = "", productorId = 0 }: Props) {
+export default function MiMercadoProductor({ publicaciones, nombreProductor = "", productorId = 0, publicacionInicialId = null }: Props) {
     const router = useRouter();
-    const { notificacion, notificar, cerrarNotificacion } = useNotificacionToast();
-    const [seleccionId, setSeleccionId] = useState<number | null>(null);
+    const { notificar } = useNotificacionToast();
     const [altaAbierta, setAltaAbierta] = useState(false);
     const [cambiosGuardados, setCambiosGuardados] = useState<{ origen: PublicacionMiMercadoProductor[]; porId: Map<number, PublicacionMiMercadoProductor> } | null>(null);
     const publicacionesActuales = useMemo(() => publicaciones.map((publicacion) =>
         cambiosGuardados?.origen === publicaciones ? cambiosGuardados.porId.get(publicacion.id) ?? publicacion : publicacion,
     ), [publicaciones, cambiosGuardados]);
+    const { seleccionId, setSeleccionId, avisoPublicacion } = useSeleccionPublicacion(publicacionInicialId, publicacionesActuales);
     const publicacionesParaFiltros = useMemo<PublicacionListado[]>(() => publicacionesActuales.map((publicacion) => ({
         id: publicacion.id,
         precio: publicacion.precio === null ? null : Number(publicacion.precio),
@@ -39,8 +43,10 @@ export default function MiMercadoProductor({ publicaciones, nombreProductor = ""
         foto: publicacion.foto,
         especie: publicacion.especie.nombreEspecie,
         variedad: publicacion.variedad?.nombreVariedad ?? "",
-        presentacion: publicacion.presentacion?.nombrePresentacion ?? "",
+        envase: publicacion.envase?.nombreEnvase ?? "",
+        kilos: publicacion.kilos?.valor ?? "",
         cantidadUnidades: publicacion.cantidadUnidades,
+        comentario: publicacion.comentario,
         categoria: publicacion.categoria?.nombreCategoria ?? "",
         calibre: publicacion.calibre?.nombreCalibre ?? "",
         codigoCalibre: publicacion.calibre?.codigoCalibre ?? "",
@@ -66,17 +72,11 @@ export default function MiMercadoProductor({ publicaciones, nombreProductor = ""
     return (
         <main className="relative isolate flex-1 bg-background">
             <div className="contenedor-pagina secciones-pagina relative z-10">
-                <header className="encabezado-pagina relative isolate overflow-hidden">
-                    <HojasDecorativas />
-                    <div className="relative z-10 flex flex-col gap-[var(--espacio-controles)] sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                            <p className="mb-[var(--espacio-textos)] text-[length:var(--tamano-texto-auxiliar)] font-bold uppercase tracking-widest text-[var(--color-subtitulo-pagina)]">Mis publicaciones</p>
-                            <h1 className="titulo-pagina">Mi Mercado</h1>
-                            <p className="subtitulo-pagina mt-[var(--espacio-textos)]">Consultá los productos que tenés publicados.</p>
-                        </div>
-                        <p className="subtitulo-pagina">{publicaciones.length} {publicaciones.length === 1 ? "publicación" : "publicaciones"}</p>
-                    </div>
-                </header>
+                <EncabezadoPagina
+                    titulo="Mi Mercado"
+                    subtitulo={`${publicaciones.length} ${publicaciones.length === 1 ? "publicación" : "publicaciones"}`}
+                />
+                <AvisoErrorToast mensaje={avisoPublicacion} tipo="warning" />
                 {publicaciones.length > 0 && (
                     <div className={styles.filtros}>
                         <FiltrosPublicaciones obtenerNombreFantasia={obtenerNombreOperador} publicaciones={publicacionesParaFiltros} especieFiltro="" ordenInicial="prioridad" alFiltrar={setPublicacionesFiltradas} />
@@ -102,16 +102,15 @@ export default function MiMercadoProductor({ publicaciones, nombreProductor = ""
                         anunciar={false}
                     />
                 ) : (
-                    <div className="grid grid-cols-1 gap-[var(--espacio-controles)] md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    <div className="grilla-tarjetas gap-[var(--espacio-controles)]">
                         {publicacionesVisibles.map((publicacion) => (
                             <TarjetaPublicacionProductor key={publicacion.id} publicacion={publicacion} alConsultar={() => setSeleccionId(publicacion.id)} />
                         ))}
                     </div>
                 )}
             </div>
-            <DrawerPublicacionProductor publicacion={publicacionSeleccionada} alCerrar={() => setSeleccionId(null)} alGuardar={guardarPublicacion} alEliminada={(mensaje) => { notificar(mensaje, "success"); router.refresh(); }} />
+            <DrawerPublicacionProductor mostrarAvisoFoto publicacion={publicacionSeleccionada} alCerrar={() => setSeleccionId(null)} alGuardar={guardarPublicacion} alEliminada={(mensaje, tipo) => { notificar(mensaje, tipo); router.refresh(); }} />
             {productorId > 0 && <DrawerAltaPublicacionProductor productorId={productorId} abierto={altaAbierta} alCerrar={() => setAltaAbierta(false)} alCrear={(mensaje) => { setAltaAbierta(false); notificar(mensaje, "success"); router.refresh(); }} />}
-            <NotificacionToast notificacion={notificacion} alCerrar={cerrarNotificacion} />
         </main>
     );
 }

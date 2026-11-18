@@ -4,12 +4,14 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import SearchOffOutlinedIcon from "@mui/icons-material/SearchOffOutlined";
 import PriceCheckOutlinedIcon from "@mui/icons-material/PriceCheckOutlined";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import { MenuItem, TextField } from "@mui/material";
+import { Checkbox, MenuItem, TextField } from "@mui/material";
 import { useRouter } from "next/navigation";
-import EncabezadoPagina from "@/compartido/EncabezadoPagina";
+import Link from "next/link";
+import EncabezadoPagina from "@/compartido/componentes/EncabezadoPagina";
 import EstadoVacio from "@/compartido/componentes/EstadoVacio";
+import AvisoErrorToast from "@/compartido/componentes/AvisoErrorToast";
+import BotonDesplegable from "@/compartido/componentes/BotonDesplegable";
+import Paginacion from "@/compartido/componentes/Paginacion";
 import { compararEspeciesPorPrioridad } from "@/compartido/prioridad-especies";
 import { compararPaisesPorPrioridad } from "@/compartido/prioridad-paises";
 import { esEntradaPrecioPublicacion, MAXIMO_DIGITOS_PRECIO } from "@/modulos/publicaciones/precio-publicacion";
@@ -90,7 +92,7 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
     const [precioMinimo, setPrecioMinimo] = useState("");
     const [precioMaximo, setPrecioMaximo] = useState("");
     const [mostrarFiltros, setMostrarFiltros] = useState(false);
-    const [soloReferencias, setSoloReferencias] = useState(false);
+    const [soloReferencias, setSoloReferencias] = useState(true);
     const [pagina, setPagina] = useState(1);
     const panelFiltrosRef = useRef<HTMLDivElement>(null);
     const contenidoFiltrosRef = useRef<HTMLDivElement>(null);
@@ -115,12 +117,12 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
 
     const disponibles = useMemo(() => ({
         especies: opciones(filas.map((fila) => fila.especie)).sort(compararEspeciesPorPrioridad),
-        variedades: especie ? opciones(filasCompatibles(filas, seleccion, ["variedad", "unidad"]).map((fila) => fila.variedad)) : [],
-        unidades: variedad ? opciones(filasCompatibles(filas, seleccion, ["unidad"]).map((fila) => fila.unidad)) : [],
+        variedades: especie ? opciones(filas.filter((fila) => fila.especie === especie).map((fila) => fila.variedad)) : [],
+        unidades: opciones(filasCompatibles(filas, seleccion, ["unidad"]).map((fila) => fila.unidad)),
         paises: opciones(filasCompatibles(filas, seleccion, ["pais"]).map((fila) => fila.pais)).sort(compararPaisesPorPrioridad),
         categorias: opciones(filasCompatibles(filas, seleccion, ["categoria"]).map((fila) => fila.categoria)),
         calibres: opciones(filasCompatibles(filas, seleccion, ["calibre"]).map((fila) => fila.calibre)),
-    }), [filas, seleccion, especie, variedad]);
+    }), [filas, seleccion, especie]);
     const cantidadReferencias = useMemo(() => filas.filter((fila) => fila.esReferencia).length, [filas]);
     const minimo = leerPrecio(precioMinimo);
     const maximo = leerPrecio(precioMaximo);
@@ -161,7 +163,7 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
     const visibles = filtradas.slice(desde, desde + LIMITE);
     const [anio, mes, dia] = fechaRelevamiento.split("-");
 
-    function abrirHistorico(fila: PrecioReferencia) {
+    function rutaHistorico(fila: PrecioReferencia) {
         const [, especie] = JSON.parse(fila.id);
         const parametros = new URLSearchParams({
             species_id: String(especie),
@@ -171,7 +173,11 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
             calibre: fila.calibre,
             categoria: fila.categoria,
         });
-        router.push(`/precios-historicos?${parametros}`);
+        return `/precios-historicos?${parametros}`;
+    }
+
+    function abrirHistorico(fila: PrecioReferencia) {
+        router.push(rutaHistorico(fila));
     }
 
     function cambiar(accion: () => void) {
@@ -182,11 +188,7 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
     function cambiarFiltro(campo: CampoFiltro, valor: string) {
         cambiar(() => setSeleccion((actual) => {
             const siguiente = { ...actual, [campo]: valor };
-            if (campo === "especie") {
-                siguiente.variedad = "";
-                siguiente.unidad = "";
-            }
-            if (campo === "variedad") siguiente.unidad = "";
+            if (campo === "especie") siguiente.variedad = "";
             return ajustarSeleccion(filas, siguiente, campo);
         }));
     }
@@ -201,13 +203,13 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
         setPrecioPor("unidad");
         setPrecioMinimo("");
         setPrecioMaximo("");
-        setSoloReferencias(false);
+        setSoloReferencias(true);
         setPagina(1);
     }
 
     return (
         <div className={styles.pagina}>
-            <EncabezadoPagina titulo="Precios de referencia" cantidad={filas.length} subtitulo="registros del relevamiento" />
+            <EncabezadoPagina titulo="Precios de referencia" cantidad={filas.length} subtitulo={filas.length === 1 ? "registro del relevamiento" : "registros del relevamiento"} />
 
             <div className={styles.contexto}>
                 <p>Relevamiento del <strong>{dia}/{mes}/{anio}</strong></p>
@@ -255,16 +257,14 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
                             <MenuItem key={v} value={v} className={styles.opcionSelect}>{v}</MenuItem>
                         ))}
                     </TextField>
-                    <button
-                        type="button"
+                    <BotonDesplegable
                         className={styles.botonMasFiltros}
-                        aria-expanded={mostrarFiltros}
+                        abierto={mostrarFiltros}
                         aria-controls="filtros-adicionales-precios"
                         onClick={() => setMostrarFiltros((abiertos) => !abiertos)}
                     >
                         Más filtros
-                        {mostrarFiltros ? <KeyboardArrowUpIcon className={styles.iconoExpandir} /> : <KeyboardArrowDownIcon className={styles.iconoExpandir} />}
-                    </button>
+                    </BotonDesplegable>
                     <div ref={panelFiltrosRef} id="filtros-adicionales-precios" className={`${styles.filtrosAdicionales} ${mostrarFiltros ? styles.filtrosAbiertos : ""}`}>
                         <div ref={contenidoFiltrosRef} className={styles.contenidoAdicional}>
                             <TextField
@@ -287,7 +287,6 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
                                 label="Presentación"
                                 size="small"
                                 value={unidad}
-                                disabled={!variedad}
                                 onChange={(e) => cambiarFiltro("unidad", e.target.value)}
                                 slotProps={menu}
                             >
@@ -337,7 +336,7 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
                                 slotProps={menu}
                             >
                                 <MenuItem value="unidad" className={styles.opcionSelect}>Unidad</MenuItem>
-                                <MenuItem value="kg" className={styles.opcionSelect}>Kg</MenuItem>
+                                <MenuItem value="kg" className={styles.opcionSelect}>kg</MenuItem>
                             </TextField>
                             <TextField
                                 className={`${styles.campo} ${styles.filtroPrecioMinimo}`}
@@ -355,18 +354,18 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
                                 type="text"
                                 size="small"
                                 value={precioMaximo}
-                                placeholder="Sin límite"
+                                placeholder="Sin máximo"
                                 error={rangoPrecioInvalido}
                                 onChange={(e) => cambiarPrecio(e.target.value, setPrecioMaximo)}
                                 slotProps={{ htmlInput: { inputMode: "numeric", pattern: "0*[1-9][0-9]*", maxLength: MAXIMO_DIGITOS_PRECIO } }}
                             />
-                            {rangoPrecioInvalido && <p className={styles.errorPrecio} role="alert">El precio máximo no puede ser menor al mínimo.</p>}
+                            <AvisoErrorToast mensaje={rangoPrecioInvalido ? "El precio máximo no puede ser menor al mínimo." : null} />
                         </div>
                     </div>
                 </div>
                 <div className={styles.barraOpciones}>
                     <label className={styles.soloReferencias}>
-                        <input type="checkbox" checked={soloReferencias} onChange={(e) => cambiar(() => setSoloReferencias(e.target.checked))} />
+                        <Checkbox size="small" checked={soloReferencias} onChange={(e) => cambiar(() => setSoloReferencias(e.target.checked))} sx={{ padding: 0 }} />
                         Solo registros de referencia
                     </label>
                 </div>
@@ -405,7 +404,7 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
                                 <tbody>
                                     {visibles.map((fila) => (
                                         <tr key={fila.id} className={fila.esReferencia ? styles.filaReferencia : undefined} onClick={() => abrirHistorico(fila)} style={{ cursor: "pointer" }}>
-                                            <td className={styles.producto}><strong>{fila.especie}</strong></td>
+                                            <td className={styles.producto}><Link className={styles.enlaceHistorico} href={rutaHistorico(fila)} prefetch={false} onClick={(evento) => evento.stopPropagation()} aria-label={`Ver histórico de ${fila.especie}, ${fila.variedad}`}><strong>{fila.especie}</strong></Link></td>
                                             <td className={styles.variedad}>{fila.variedad}</td>
                                             <td className={styles.referencia}>
                                                 {fila.esReferencia ? (
@@ -443,7 +442,7 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
                                 >
                                     <div className={styles.filaMobileCabecera}>
                                         <div className={styles.filaMobileProducto}>
-                                            <strong>{fila.especie}</strong>
+                                            <Link className={styles.enlaceHistorico} href={rutaHistorico(fila)} prefetch={false} onClick={(evento) => evento.stopPropagation()} aria-label={`Ver histórico de ${fila.especie}, ${fila.variedad}`}><strong>{fila.especie}</strong></Link>
                                             {fila.variedad !== "-" && <span>{fila.variedad}</span>}
                                         </div>
                                         {fila.esReferencia && <span className={styles.insignia}>Referencia</span>}
@@ -471,14 +470,13 @@ export default function PreciosReferencia({ fechaRelevamiento, filas }: Props) {
                     </>
                 )}
                 {filtradas.length > LIMITE && (
-                    <nav className={styles.paginacion} aria-label="Páginas de precios de referencia">
-                        <span>{desde + 1}-{Math.min(desde + LIMITE, filtradas.length)} de {filtradas.length}</span>
-                        <div>
-                            <button type="button" disabled={paginaActual === 1} onClick={() => setPagina(paginaActual - 1)}>Anterior</button>
-                            <span>Página {paginaActual} de {totalPaginas}</span>
-                            <button type="button" disabled={paginaActual === totalPaginas} onClick={() => setPagina(paginaActual + 1)}>Siguiente</button>
-                        </div>
-                    </nav>
+                    <Paginacion
+                        pagina={paginaActual}
+                        totalPaginas={totalPaginas}
+                        alCambiar={setPagina}
+                        etiqueta="Páginas de precios de referencia"
+                        resumen={`${desde + 1}-${Math.min(desde + LIMITE, filtradas.length)} de ${filtradas.length}`}
+                    />
                 )}
             </section>
             <FuentePrecios />

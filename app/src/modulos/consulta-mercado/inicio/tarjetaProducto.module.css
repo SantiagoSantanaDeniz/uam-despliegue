@@ -18,7 +18,7 @@
 }
 
 .tarjeta:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-secondary);
   outline-offset: 2px;
 }
 
@@ -29,7 +29,7 @@
   aspect-ratio: 4 / 3;
   place-items: center;
   overflow: hidden;
-  background: var(--color-primary-soft);
+  background: var(--color-secondary-soft);
 }
 
 .foto {
@@ -37,10 +37,26 @@
 }
 
 .sinFoto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-inline);
+  padding-inline: var(--espacio-inline);
   color: var(--color-secondary);
-  font-size: clamp(3rem, 12vw, 4.5rem);
-  font-weight: 700;
-  line-height: 1;
+  font-size: var(--tamano-texto-auxiliar);
+  font-weight: 500;
+  text-align: center;
+}
+
+.iconoFoto {
+  display: block !important;
+  font-size: 2rem !important;
+  flex-shrink: 0;
+}
+
+.textoSinFotoWeb {
+  display: none;
 }
 
 .contenido {
@@ -75,7 +91,7 @@
 
 .nombreFila .flecha {
   flex-shrink: 0;
-  color: var(--color-primary);
+  color: var(--color-secondary);
   font-size: 1.5rem;
 }
 
@@ -91,7 +107,7 @@
 }
 
 .cantidad {
-  color: var(--color-primary);
+  color: var(--color-secondary);
   font-size: var(--tamano-titulo-seccion);
   font-weight: 700;
   line-height: 1;
@@ -110,6 +126,9 @@
     aspect-ratio: 8 / 5;
   }
 
+  .textoSinFotoWeb {
+    display: inline;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

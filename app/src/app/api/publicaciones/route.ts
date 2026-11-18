@@ -2,11 +2,12 @@ import { obtenerSesion } from "@/modulos/identidad-acceso/autenticacion/sesiones
 import { autorizado } from "@/modulos/identidad-acceso/autorizacion/permisos";
 import { NextResponse } from "next/server";
 import { db } from "@/infraestructura/persistencia/prisma/db";
-import { altaPublicacionOperador } from "@/modulos/publicaciones/altaPublicacionOperador";
-import { obtenerOperadorAutorizado } from "@/modulos/usuarios/operadores/operador-actual";
+import { altaPublicacionOperador } from "@/modulos/publicaciones/operadores/operaciones/alta-publicacion";
+import { obtenerOperadorAutorizado } from "@/modulos/usuarios/operadores/consultas/operador-actual";
 import { ErrorAutorizacion } from "@/modulos/identidad-acceso/autorizacion/controles";
 import { revalidatePath } from "next/cache";
 import { ErrorCuerpoDemasiadoGrande, leerJsonLimitado } from "@/infraestructura/http/cuerpo-limitado";
+import { registrarPublicacion } from "@/modulos/administracion/estadisticas/registrar-estadisticas";
 
 export async function GET() {
 	if (!autorizado("operador.catalogo.consultar")) {
@@ -20,11 +21,12 @@ export async function GET() {
 		const operadoresAutorizados = sesion?.rol === "OPERADOR"
 			? [await obtenerOperadorAutorizado()]
 			: db.orm.public.Operador.all();
-		const [operadores, especies, variedades, presentaciones, categorias, calibres, paises] = await Promise.all([
+		const [operadores, especies, variedades, envases, kilos, categorias, calibres, paises] = await Promise.all([
 			operadoresAutorizados,
 			db.orm.public.Especie.all(),
 			db.orm.public.Variedad.all(),
-			db.orm.public.Presentacion.all(),
+			db.orm.public.Envase.orderBy((envase) => envase.id.asc()).all(),
+			db.orm.public.KilosEmpaquetado.orderBy((peso) => peso.id.asc()).all(),
 			db.orm.public.Categoria.all(),
 			db.orm.public.Calibre.all(),
 			db.orm.public.Pais.all(),
@@ -34,7 +36,8 @@ export async function GET() {
 			operadores: operadores.map(({ id, nombreFantasia }) => ({ id, nombre: nombreFantasia })),
 			especies: especies.filter((item) => item.especieActiva).map(({ id, nombreEspecie }) => ({ id, nombre: nombreEspecie })),
 			variedades: variedades.filter((item) => item.variedadActiva).map(({ id, especieId, nombreVariedad }) => ({ id, especieId, nombre: nombreVariedad })),
-			presentaciones: presentaciones.filter((item) => item.presentacionActiva).map(({ id, variedadId, nombrePresentacion }) => ({ id, variedadId, nombre: nombrePresentacion })),
+			envases: envases.map(({ id, nombreEnvase }) => ({ id, nombre: nombreEnvase })),
+			kilos: kilos.map(({ id, valor }) => ({ id, nombre: valor })),
 			categorias: categorias.map(({ id, especieId, nombreCategoria }) => ({ id, especieId, nombre: nombreCategoria })),
 			calibres: calibres.map(({ id, nombreCalibre }) => ({ id, nombre: nombreCalibre })),
 			paises: paises.map(({ id, nombrePais }) => ({ id, nombre: nombrePais })),
@@ -99,6 +102,14 @@ export async function POST(request: Request) {
 			: datos;
 		const resultado = await altaPublicacionOperador(datosDelOperador);
 		if (resultado.esValido) {
+			try {
+				const usuarioVinculado = await db.orm.public.Usuario.select("username").where({ id: operador.usuarioId }).first();
+				if (usuarioVinculado?.username) {
+					await registrarPublicacion(usuarioVinculado.username);
+				}
+			} catch (errEst) {
+				console.error("Error al registrar estadística de publicación:", errEst);
+			}
 			const rutas = [
 				"/mi-mercado",
 				`/mi-mercado/${encodeURIComponent(operador.nombreFantasia)}`,

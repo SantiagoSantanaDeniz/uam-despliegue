@@ -1,4 +1,4 @@
-import type { Publicacion } from "./tipos";
+import type { Publicacion } from "../tipos";
 import { crearEnlaceWhatsApp as crearEnlace } from "@/compartido/whatsapp";
 
 export function crearMensajeWhatsApp(publicacion: Publicacion, nombreOperador: string, origen: string): string {
@@ -8,7 +8,8 @@ export function crearMensajeWhatsApp(publicacion: Publicacion, nombreOperador: s
     const enlacePerfil = `${origen}/operadores/${encodeURIComponent(nombreOperador)}`;
     return [
         `🌿 ${nombreProducto}`,
-        ...(publicacion.presentacion ? [`📦 Presentación: ${publicacion.presentacion.nombrePresentacion}`] : []),
+        ...(publicacion.envase ? [`📦 Empaquetado: ${publicacion.envase.nombreEnvase}`] : []),
+        ...(publicacion.kilos ? [`⚖️ Kilos: ${publicacion.kilos.valor} kg`] : []),
         ...(publicacion.categoria ? [`🏷️ Categoría: ${publicacion.categoria.nombreCategoria}`] : []),
         ...(publicacion.calibre ? [`📏 Calibre: ${publicacion.calibre.nombreCalibre}`] : []),
         `💰 Precio: ${publicacion.precio !== null ? `$${Number(publicacion.precio)}` : "Consultar"}`,

@@ -20,15 +20,19 @@
     line-height: var(--interlineado-titulo-pagina);
 }
 
-.mensajeError {
-    margin: 0;
+.avisoLicencia {
+    display: flex;
+    margin: var(--espacio-secciones) 0;
     padding: var(--padding-panel);
+    align-items: center;
+    gap: var(--espacio-inline);
+    border: 1px solid color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
     border-radius: var(--radio-panel);
-    font-size: var(--tamano-texto-secundario);
-    line-height: var(--interlineado-texto);
+    background: var(--color-warning-soft);
+    color: var(--color-foreground);
 }
 
-.mensajeError {
-    color: var(--color-danger);
-    background: var(--color-danger-soft);
+.avisoLicencia svg {
+    flex-shrink: 0;
+    color: var(--color-warning);
 }

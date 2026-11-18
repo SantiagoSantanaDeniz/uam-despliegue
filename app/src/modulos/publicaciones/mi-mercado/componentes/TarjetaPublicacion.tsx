@@ -1,12 +1,17 @@
 "use client";
 
+import { formatearEmpaquetado } from "@/modulos/publicaciones/empaquetado-publicacion";
 import { useRef, useState } from "react";
+import OutlinedInput from "@mui/material/OutlinedInput";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import NotificacionToast, { useNotificacionToast } from "@/compartido/componentes/NotificacionToast";
+import HideImageOutlinedIcon from "@mui/icons-material/HideImageOutlined";
+import { useNotificacionToast } from "@/compartido/componentes/NotificacionToast";
 import ImagenPublicacion from "../../componentes/ImagenPublicacion";
-import type { Publicacion } from "../tipos";
+import { IndicadorVigenciaFoto } from "../../componentes/AvisoVigenciaFoto";
+import { DescripcionVigenciaPublicacion } from "../../componentes/AvisoVigenciaPublicacion";
+import type { Publicacion } from "../../tipos";
 import { actualizarPrecio, incrementarPrecio } from "../acciones";
 import { AYUDA_PRECIO_PUBLICACION, MAXIMO_DIGITOS_PRECIO, MAXIMO_PRECIO_PUBLICACION, PRECIO_PUBLICACION_INVALIDO, esEntradaPrecioPublicacion, normalizarPrecioPublicacion, precioPublicacionValido } from "../../precio-publicacion";
 import styles from "./TarjetaPublicacion.module.css";
@@ -30,15 +35,14 @@ export default function TarjetaPublicacion({
     alPrecioActualizado,
     alPublicacionEliminada,
 }: Props) {
-    const { notificacion, notificar, cerrarNotificacion } = useNotificacionToast();
+    const { notificar } = useNotificacionToast();
     const recibido = { precio: pub.precio === null ? null : Number(pub.precio), version: pub.version, fecha: pub.fecha };
     const [confirmado, setConfirmado] = useState(recibido);
     const actual = confirmado.version > recibido.version ? confirmado : recibido;
     const [optimista, setOptimista] = useState<number | null | undefined>(undefined);
     const precio = optimista === undefined ? actual.precio : optimista;
-    const [errorPrecio, setErrorPrecio] = useState("");
     const guardandoRef = useRef(false);
-    const incrementosPendientesRef = useRef(0);
+    const incrementosPendientesRef = useRef<number[]>([]);
     const precioVisibleRef = useRef(recibido.precio ?? 0);
     const versionEdicionRef = useRef(pub.version);
     const [guardandoPrecio, setGuardandoPrecio] = useState(false);
@@ -50,15 +54,13 @@ export default function TarjetaPublicacion({
         if (guardandoRef.current) return;
         const nuevoPrecio = valor;
         if (!precioPublicacionValido(nuevoPrecio === null ? null : String(nuevoPrecio))) {
-            setErrorPrecio(PRECIO_PUBLICACION_INVALIDO);
+            notificar(PRECIO_PUBLICACION_INVALIDO, "error");
             return;
         }
-        cerrarNotificacion();
         guardandoRef.current = true;
         setGuardandoPrecio(true);
         setGuardandoManual(true);
         setOptimista(nuevoPrecio);
-        setErrorPrecio("");
         try {
             const resultado = await actualizarPrecio(pub.id, valor, operadorId, versionEdicionRef.current);
             if (resultado.publicacionEliminada) {
@@ -81,17 +83,14 @@ export default function TarjetaPublicacion({
 
     async function guardarIncrementos() {
         if (guardandoRef.current) return;
-        cerrarNotificacion();
         guardandoRef.current = true;
         setGuardandoPrecio(true);
-        setErrorPrecio("");
         try {
-            while (incrementosPendientesRef.current !== 0) {
-                const incremento = incrementosPendientesRef.current;
-                incrementosPendientesRef.current = 0;
+            while (incrementosPendientesRef.current.length > 0) {
+                const incremento = incrementosPendientesRef.current.shift()!;
                 const resultado = await incrementarPrecio(pub.id, incremento, operadorId);
                 if (resultado.publicacionEliminada) {
-                    incrementosPendientesRef.current = 0;
+                    incrementosPendientesRef.current = [];
                     alPublicacionEliminada?.();
                     return;
                 }
@@ -99,14 +98,17 @@ export default function TarjetaPublicacion({
                 setConfirmado({ precio: precioActual, version: resultado.version, fecha: resultado.fecha });
                 alPrecioActualizado?.(pub.id, precioActual, resultado.fecha, resultado.version);
                 if (resultado.conflicto) {
-                    incrementosPendientesRef.current = 0;
+                    incrementosPendientesRef.current = [];
                     notificar("La publicación cambió en otra sesión. Revisá el precio actualizado y volvé a intentar.", "warning");
                 }
-                precioVisibleRef.current = (precioActual ?? 0) + incrementosPendientesRef.current;
-                setOptimista(incrementosPendientesRef.current === 0 ? precioActual : precioVisibleRef.current);
+                precioVisibleRef.current = incrementosPendientesRef.current.reduce(
+                    (acumulado, pendiente) => Math.max(0, acumulado + pendiente),
+                    precioActual ?? 0,
+                );
+                setOptimista(precioVisibleRef.current <= 0 ? null : precioVisibleRef.current);
             }
         } catch (error) {
-            incrementosPendientesRef.current = 0;
+            incrementosPendientesRef.current = [];
             notificar(error instanceof Error ? error.message : "No se pudo guardar el precio.", "error");
         } finally {
             guardandoRef.current = false;
@@ -118,11 +120,19 @@ export default function TarjetaPublicacion({
     function cambiarPorIncremento(incremento: number) {
         if (guardandoManual) return;
         const precioActual = guardandoRef.current ? precioVisibleRef.current : actual.precio ?? 0;
+        if (precioActual <= 0 && incremento < 0) return;
         const siguiente = precioActual + incremento;
-        if (!Number.isSafeInteger(siguiente) || siguiente <= 0 || siguiente > MAXIMO_PRECIO_PUBLICACION) return;
-        incrementosPendientesRef.current += incremento;
-        precioVisibleRef.current = siguiente;
-        setOptimista(siguiente);
+        if (!Number.isSafeInteger(siguiente) || siguiente > MAXIMO_PRECIO_PUBLICACION) return;
+        const pendientes = incrementosPendientesRef.current;
+        const ultimoIndice = pendientes.length - 1;
+        if (ultimoIndice >= 0 && Math.sign(pendientes[ultimoIndice]) === Math.sign(incremento)
+            && Math.abs(pendientes[ultimoIndice] + incremento) <= MAXIMO_PRECIO_PUBLICACION) {
+            pendientes[ultimoIndice] += incremento;
+        } else {
+            pendientes.push(incremento);
+        }
+        precioVisibleRef.current = Math.max(0, siguiente);
+        setOptimista(siguiente <= 0 ? null : siguiente);
         void guardarIncrementos();
     }
 
@@ -148,7 +158,7 @@ export default function TarjetaPublicacion({
         if (!editandoPrecio) return;
         setEditandoPrecio(false);
         if (!precioPublicacionValido(precioTemporal)) {
-            setErrorPrecio(PRECIO_PUBLICACION_INVALIDO);
+            notificar(PRECIO_PUBLICACION_INVALIDO, "error");
             return;
         }
         const normalizado = normalizarPrecioPublicacion(precioTemporal);
@@ -164,19 +174,29 @@ export default function TarjetaPublicacion({
 
     const variedad = pub.variedad?.nombreVariedad;
     const especie = pub.especie.nombreEspecie;
-    const presentacion = pub.presentacion?.nombrePresentacion;
+    const empaquetado = formatearEmpaquetado(pub.envase?.nombreEnvase, pub.kilos?.valor);
     const categoria = pub.categoria?.nombreCategoria;
     const calibre = pub.calibre?.nombreCalibre;
     const tieneVariedad = variedad && variedad.trim() !== "" && variedad.trim() !== "-";
     const nombreProducto = tieneVariedad ? `${especie} · ${variedad}` : especie;
+    const claseVigencia = pub.estadoVigencia === "por-vencer" ? styles.porVencer : pub.estadoVigencia === "vencida" ? styles.vencida : "";
+    const descripcionVigencia = pub.estadoVigencia ? `vigencia-publicacion-operador-${pub.id}` : undefined;
+    const descripcionFoto = [pub.estadoFoto ? `vigencia-foto-operador-${pub.id}` : null, descripcionVigencia].filter(Boolean).join(" ") || undefined;
 
     const contenido = (
-        <div className={styles.tarjeta}>
-            <button type="button" onClick={consultarPublicacion} className={styles.botonFoto} aria-label={`Ver detalle de ${nombreProducto}`}>
-                <ImagenPublicacion src={pub.foto} alt={nombreProducto} fill sizes="(max-width: 639px) 112px, (max-width: 700px) 128px, (max-width: 776px) calc(50vw - 22px), (max-width: 1028px) calc(33.333vw - 18.667px), (max-width: 1279px) calc(25vw - 17px), 320px" unoptimized className={styles.foto} reemplazo={<div className={styles.sinFoto}>Sin fotografía</div>} />
+        <div className={`${styles.tarjeta} ${claseVigencia}`}>
+            <DescripcionVigenciaPublicacion estado={pub.estadoVigencia} id={`vigencia-publicacion-operador-${pub.id}`} />
+            <button type="button" onClick={consultarPublicacion} className={styles.botonFoto} aria-label={`Ver detalle de ${nombreProducto}`} aria-describedby={descripcionFoto}>
+                <ImagenPublicacion src={pub.foto} alt={nombreProducto} fill sizes="(max-width: 639px) 112px, (max-width: 700px) 128px, (max-width: 776px) calc(50vw - 22px), (max-width: 1028px) calc(33.333vw - 18.667px), (max-width: 1279px) calc(25vw - 17px), 320px" unoptimized className={styles.foto} reemplazo={
+                    <div className={styles.sinFoto} role="img" aria-label="Sin foto disponible">
+                        <HideImageOutlinedIcon className={styles.iconoSinFoto} aria-hidden="true" />
+                        <span className={styles.textoSinFotoWeb}>Sin foto disponible</span>
+                    </div>
+                } />
+                <IndicadorVigenciaFoto estado={pub.estadoFoto} id={`vigencia-foto-operador-${pub.id}`} />
             </button>
             <div className={styles.contenido}>
-                <button type="button" onClick={consultarPublicacion} className={styles.botonInformacion}>
+                <button type="button" onClick={consultarPublicacion} className={styles.botonInformacion} aria-describedby={descripcionVigencia}>
                     <div className={styles.informacion}>
                         <div className={styles.encabezadoProducto}>
                             <div className={styles.nombreProducto} title={nombreProducto}>
@@ -187,11 +207,12 @@ export default function TarjetaPublicacion({
                             </span>
                         </div>
                         <div className={styles.datos}>
-                            {calibre || "-"}
+                            <span className={styles.calibreCompleto}>{calibre?.trim() || "-"}</span>
+                            <span className={styles.codigoCalibre}>{pub.calibre?.codigoCalibre?.trim() || "-"}</span>
                             {" · "}
                             Cat. {categoria || "-"}
                             {" · "}
-                            {presentacion || "-"}
+                            {empaquetado || "-"}
                         </div>
                     </div>
                 </button>
@@ -201,16 +222,15 @@ export default function TarjetaPublicacion({
                             <RemoveIcon aria-hidden="true" fontSize="inherit" />
                         </button>
                         {editandoPrecio && puedeModificar ? (
-                            <input
+                            <OutlinedInput
+                                color="secondary"
                                 autoFocus
+                                size="small"
                                 type="text"
-                                inputMode="numeric"
-                                maxLength={MAXIMO_DIGITOS_PRECIO}
+                                slotProps={{ input: { inputMode: "numeric", maxLength: MAXIMO_DIGITOS_PRECIO, "aria-label": "Editar precio", title: AYUDA_PRECIO_PUBLICACION } }}
                                 placeholder="Sin precio"
                                 value={precioTemporal}
                                 className={styles.inputPrecio}
-                                aria-label="Editar precio"
-                                title={AYUDA_PRECIO_PUBLICACION}
                                 onChange={(e) => {
                                     if (esEntradaPrecioPublicacion(e.target.value)) setPrecioTemporal(e.target.value);
                                 }}
@@ -227,7 +247,7 @@ export default function TarjetaPublicacion({
                                 }}
                             />
                         ) : (
-                            <button type="button" onClick={comenzarEdicionPrecio} className={styles.precio} title="Editar precio" disabled={guardandoPrecio || !puedeModificar}>
+                            <button type="button" onClick={comenzarEdicionPrecio} className={`${styles.precio} ${precio === null ? styles.sinPrecio : ""}`} title="Editar precio" disabled={guardandoPrecio || !puedeModificar}>
                                 {precio === null ? "Sin precio" : `$${precio}`}
                             </button>
                         )}
@@ -235,13 +255,12 @@ export default function TarjetaPublicacion({
                             <AddIcon aria-hidden="true" fontSize="inherit" />
                         </button>
                     </div>
-                    <button type="button" onClick={consultarPublicacion} className={styles.botonDetalle} aria-label={`Ver detalle de ${nombreProducto}`}>
+                    <button type="button" onClick={consultarPublicacion} className={styles.botonDetalle} aria-label={`Ver detalle de ${nombreProducto}`} aria-describedby={descripcionVigencia}>
                         <ChevronRightIcon aria-hidden="true" fontSize="inherit" />
                     </button>
                 </div>
-                {errorPrecio && <div role="alert" className={styles.errorPrecio}>{errorPrecio}</div>}
             </div>
         </div>
     );
-    return <>{contenido}<NotificacionToast notificacion={notificacion} alCerrar={cerrarNotificacion} /></>;
+    return contenido;
 }

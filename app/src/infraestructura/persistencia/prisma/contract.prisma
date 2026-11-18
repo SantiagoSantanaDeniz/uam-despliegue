@@ -22,12 +22,28 @@ model Usuario {
   passwordHash     String
   twoFactorSecret  String?
   twoFactorEnabled Boolean        @default(false)
+  twoFactorChallengeHash String?   @unique
+  twoFactorPendingSecret String?
+  twoFactorExpiresAt Int?
+  twoFactorFailedAttempts Int      @default(0)
+  twoFactorLockedUntil Int?
+  twoFactorLastStep Int?
   solicitoRestablecimiento Boolean        @default(false)
+  habilitado       Boolean        @default(true)
   rol              RolUsuario
 
   notificaciones   Notificacion[]
 
   @@map("usuario")
+}
+
+// Tokens cerrados: la revocación se comparte entre instancias hasta su vencimiento.
+model SesionRevocada {
+  tokenHash String @id
+  expiraEn  Timestamptz(3)
+
+  @@index([expiraEn])
+  @@map("sesionRevocada")
 }
 
 // ADMINISTRADORES
@@ -52,6 +68,7 @@ model Operador {
   whatsApp              String
 
   locales               Local[]
+  avisosVencimientoLocales AvisoVencimientoLocal[]
   publicacionesOperador PublicacionOperador[]
 
   @@map("operador")
@@ -94,6 +111,21 @@ model Local {
   @@map("local")
 }
 
+// Conserva los avisos aunque se borren las notificaciones o se recreen los locales al editar un operador.
+model AvisoVencimientoLocal {
+  id          Int       @id @default(autoincrement())
+  operadorId  Int
+  operador    Operador  @relation(fields:[operadorId], references:[id], onDelete: Cascade)
+  naveId      Int
+  numeroLocal String
+  finContrato Date
+  tipo        String
+  fecha       Timestamptz(3) @default(now())
+
+  @@unique([operadorId, naveId, numeroLocal, finContrato, tipo], map: "avisoVencimientoLocal_contrato_tipo_key")
+  @@map("avisoVencimientoLocal")
+}
+
 // ESPECIES
 model Especie {
   id            Int         @id @default(autoincrement())
@@ -117,25 +149,25 @@ model Variedad {
   variedadActiva Boolean        @default(true)
   especieId      Int
   especie        Especie        @relation(fields:[especieId], references:[id])
-  presentaciones Presentacion[]
   publicaciones Publicacion[]
 
   @@map("variedad")
 }
 
-// PRESENTACIONES
-model Presentacion {
-  id                  Int             @id @default(autoincrement())
-  uamId               Int?            @unique
-  nombrePresentacion  String
-  kgPorUnidad         Numeric(10, 2)?
-  presentacionActiva  Boolean         @default(true)
-  presentacionDefault Boolean         @default(false)
-  variedadId          Int
-  variedad            Variedad        @relation(fields:[variedadId], references:[id])
-  publicaciones       Publicacion[]
+model Envase {
+  id           Int           @id @default(autoincrement())
+  nombreEnvase String        @unique
+  publicaciones Publicacion[]
 
-  @@map("presentacion")
+  @@map("envase")
+}
+
+model KilosEmpaquetado {
+  id           Int           @id @default(autoincrement())
+  valor        String        @unique
+  publicaciones Publicacion[]
+
+  @@map("kilosEmpaquetado")
 }
 
 // CATEGORIAS
@@ -174,6 +206,7 @@ model Pais {
 model Ubicacion {
   id              Int                  @id @default(autoincrement())
   nombreUbicacion String
+  departamento    String?
   urlMaps         String
   publicacionId   Int
   publicacion     PublicacionProductor @relation(fields:[publicacionId], references:[id], onDelete: Cascade)
@@ -184,8 +217,19 @@ model Ubicacion {
 model Imagen {
   clave     String @id
   contenido Bytes
+  cargadaEn DateTime?
+  avisoVencimientoEn DateTime?
 
   @@map("imagen")
+}
+
+model EjecucionTareaProgramada {
+  nombre              String   @id
+  fecha               Date
+  completadaEn        DateTime
+  elementosProcesados Int
+
+  @@map("ejecucionTareaProgramada")
 }
 
 // PUBLICACIONES ABSTRACTAS
@@ -193,18 +237,25 @@ model Publicacion {
   id                    Int                  @id @default(autoincrement())
   version               Int                  @default(1)
   fecha                 temporal.updatedAt()
+  fechaVigencia         DateTime?
+  avisoProximoVencimientoEn DateTime?
+  avisoVencimientoEn    DateTime?
   publicacionDisponible Boolean              @default(true)
   publicacionActiva     Boolean              @default(true)
   precio                Numeric(12, 2)?
+  comentario            String?
   cantidadUnidades      Int?
   foto                  String?
+  fotoEliminadaPorVencimientoEn DateTime?
   tipoPublicacion       TipoPublicacion
   especieId             Int
   especie               Especie              @relation(fields:[especieId], references:[id])
   variedadId            Int?
   variedad              Variedad?            @relation(fields:[variedadId], references:[id])
-  presentacionId        Int?
-  presentacion          Presentacion?        @relation(fields:[presentacionId], references:[id])
+  envaseId              Int?
+  envase                Envase?              @relation(fields:[envaseId], references:[id])
+  kilosId               Int?
+  kilos                 KilosEmpaquetado?     @relation(fields:[kilosId], references:[id])
   categoriaId           Int?
   categoria             Categoria?           @relation(fields:[categoriaId], references:[id])
   calibreId             Int?
@@ -246,10 +297,14 @@ model Notificacion {
   titulo      String
   descripcion String
   vista       Boolean @default(false)
+  url         String?
+  fecha       Timestamptz(3) @default(now())
 
   usuarioId   Int
   usuario     Usuario @relation(fields:[usuarioId], references:[id], onDelete: Cascade)
 
+  @@index([usuarioId, vista])
+  @@index([usuarioId, fecha, id])
   @@map("notificacion")
 }
 
@@ -277,7 +332,63 @@ model HistoricoPrecios {
   historico                Jsonb
   fechaDesde               Date
   fechaHasta               Date
-  fechaUltimaActualizacion  Date
+  fechaUltimaActualizacion Date
 
   @@map("historicoPrecios")
+}
+
+// ESTADISTICA DE VISITAS
+model EstadisticaVisita {
+  id             Int      @id @default(autoincrement())
+  fecha          DateTime 
+  tipoVisitante  String   
+  cantidad       Int      @default(0)
+
+  @@unique([fecha, tipoVisitante])
+  @@map("estadisticaVisita")
+}
+
+// ESTADISTICA DE CONTACTOS POR PERFIL
+model EstadisticaContacto {
+  id           Int      @id @default(autoincrement())
+  fecha        DateTime 
+  username     String   
+  cantidad     Int      @default(0)
+
+  @@unique([fecha, username])
+  @@map("estadisticaContacto")
+}
+
+// ESTADISTICA DE CONTACTOS POR PUBLICACION
+model EstadisticaContactoPublicacion {
+  id       Int      @id @default(autoincrement())
+  fecha    DateTime
+  username String
+  especie  String
+  cantidad Int      @default(0)
+
+  @@unique([fecha, username, especie])
+  @@map("estadisticaContactoPublicacion")
+}
+
+// ESTADISTICA DE PUBLICACIONES MODIFICADAS
+model EstadisticaPublicacion {
+  id           Int      @id @default(autoincrement())
+  fecha        DateTime 
+  username     String   
+  cantidad     Int      @default(0)
+
+  @@unique([fecha, username])
+  @@map("estadisticaPublicacion")
+}
+
+// ESTADISTICA DE  CANTIDAD DE PUBLICACIONES EN EL SISTEMA
+model EstadisticaCantidadPublicacion {
+  id       Int      @id @default(autoincrement())
+  fecha    DateTime
+  username String
+  cantidad Int      @default(0)
+
+  @@unique([fecha, username])
+  @@map("estadisticaCantidadPublicacion")
 }

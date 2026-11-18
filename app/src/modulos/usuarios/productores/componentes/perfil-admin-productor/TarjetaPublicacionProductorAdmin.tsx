@@ -1,14 +1,9 @@
+import { formatearEmpaquetado } from "@/modulos/publicaciones/empaquetado-publicacion";
+import { formatearPrecio } from "@/compartido/formatear-precio";
 import ImagenPublicacion from "../../../../publicaciones/componentes/ImagenPublicacion";
-import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
-import type { PublicacionPerfilAdminProductor } from "../../acciones/consultas-perfil-productor-admin";
+import HideImageOutlinedIcon from "@mui/icons-material/HideImageOutlined";
+import type { PublicacionPerfilAdminProductor } from "../../consultas/consultas-perfil-productor-admin";
 import styles from "./TarjetaPublicacionProductorAdmin.module.css";
-
-const formatoPrecio = new Intl.NumberFormat("es-UY", {
-    style: "currency",
-    currency: "UYU",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-});
 
 type TarjetaPublicacionProductorAdminProps = {
     publicacion: PublicacionPerfilAdminProductor;
@@ -17,16 +12,15 @@ type TarjetaPublicacionProductorAdminProps = {
 
 export default function TarjetaPublicacionProductorAdmin({ publicacion, alConsultar }: TarjetaPublicacionProductorAdminProps) {
     const variedad = publicacion.variedad?.trim();
+    const empaquetado = formatearEmpaquetado(publicacion.envase, publicacion.kilos);
     const nombreProducto = variedad && variedad !== "-" ? `${publicacion.especie} - ${variedad}` : publicacion.especie;
-    // const ubicacion = publicacion.ubicaciones.map((lugar) => lugar.nombre).join(" · ");
 
     return (
         <article className={styles.tarjeta} aria-label={`Ver detalles de ${nombreProducto}`}>
             <div className={styles.contenedorImagen}>
                 <ImagenPublicacion src={publicacion.foto} alt={`Foto de ${nombreProducto}`} fill sizes="(max-width: 380px) 72px, (max-width: 700px) 96px, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 234px" className={styles.imagen} reemplazo={
-                    <div className={styles.sinFoto}>
-                        <ImageOutlinedIcon className={styles.iconoFoto} />
-                        <span className={styles.textoSinFotoMobile}>Foto</span>
+                    <div className={styles.sinFoto} role="img" aria-label="Sin foto disponible">
+                        <HideImageOutlinedIcon className={styles.iconoFoto} aria-hidden="true" />
                         <span className={styles.textoSinFotoWeb}>Sin foto disponible</span>
                     </div>
                 } />
@@ -57,7 +51,7 @@ export default function TarjetaPublicacionProductorAdmin({ publicacion, alConsul
                     <div className={styles.informacionMobile}>
                         <div className={styles.dato}>
                             <span className={styles.etiqueta}>Calibre</span>
-                            <span className={styles.chip}>{publicacion.calibre?.trim() || "-"}</span>
+                            <span className={styles.chip}>{publicacion.codigoCalibre?.trim() || "-"}</span>
                         </div>
                         <div className={styles.dato}>
                             <span className={styles.etiqueta}>Cat.</span>
@@ -66,12 +60,12 @@ export default function TarjetaPublicacionProductorAdmin({ publicacion, alConsul
                     </div>
                     <div className={styles.contenedorPrecio}>
                         {publicacion.precio != null ? (
-                            <span className={styles.precio}>{formatoPrecio.format(Number(publicacion.precio))}</span>
+                            <span className={styles.precio}>{formatearPrecio(Number(publicacion.precio))}</span>
                         ) : (
                             <span className={styles.consultarPrecio}>Sin precio</span>
                         )}
-                        {publicacion.presentacion?.trim() && publicacion.presentacion.trim() !== "-" && (
-                            <span className={styles.presentacionPrecio}>por {publicacion.presentacion.trim()}</span>
+                        {empaquetado && (
+                            <span className={styles.presentacionPrecio}>por {empaquetado}</span>
                         )}
                     </div>
                 </div>

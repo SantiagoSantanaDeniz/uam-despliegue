@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'580baa18385f3be13bd65c632f572151ac3bed83620b4f21eb6d1f5f98c4b59a'>;
+  StorageHashBase<'edeac76a0d9be78234b0d4f4371956c15f0f63231ea957ff73b635da6a2b766d'>;
 export type ExecutionHash =
   ExecutionHashBase<'b87fedc20ec691f085005e43b64fcd7488c500eb1615e5c8719799823bee506a'>;
 export type ProfileHash =
@@ -246,6 +246,15 @@ export type FieldOutputTypes = {
       readonly usuarioId: CodecTypes['pg/int4@1']['output'];
       readonly email: CodecTypes['pg/text@1']['output'];
     };
+    readonly AvisoVencimientoLocal: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly operadorId: CodecTypes['pg/int4@1']['output'];
+      readonly naveId: CodecTypes['pg/int4@1']['output'];
+      readonly numeroLocal: CodecTypes['pg/text@1']['output'];
+      readonly finContrato: CodecTypes['pg/date-temporal@1']['output'];
+      readonly tipo: CodecTypes['pg/text@1']['output'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    };
     readonly CachePreciosReferencia: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly claveCache: CodecTypes['pg/text@1']['output'];
@@ -266,12 +275,53 @@ export type FieldOutputTypes = {
       readonly nombreConfiguracion: CodecTypes['pg/text@1']['output'];
       readonly valorConfiguracion: CodecTypes['pg/text@1']['output'];
     };
+    readonly EjecucionTareaProgramada: {
+      readonly nombre: CodecTypes['pg/text@1']['output'];
+      readonly fecha: CodecTypes['pg/date-temporal@1']['output'];
+      readonly completadaEn: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly elementosProcesados: CodecTypes['pg/int4@1']['output'];
+    };
+    readonly Envase: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly nombreEnvase: CodecTypes['pg/text@1']['output'];
+    };
     readonly Especie: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly uamId: CodecTypes['pg/int4@1']['output'] | null;
       readonly nombreEspecie: CodecTypes['pg/text@1']['output'];
       readonly especieActiva: CodecTypes['pg/bool@1']['output'];
       readonly fotoEspecie: CodecTypes['pg/text@1']['output'] | null;
+    };
+    readonly EstadisticaCantidadPublicacion: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly username: CodecTypes['pg/text@1']['output'];
+      readonly cantidad: CodecTypes['pg/int4@1']['output'];
+    };
+    readonly EstadisticaContacto: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly username: CodecTypes['pg/text@1']['output'];
+      readonly cantidad: CodecTypes['pg/int4@1']['output'];
+    };
+    readonly EstadisticaContactoPublicacion: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly username: CodecTypes['pg/text@1']['output'];
+      readonly especie: CodecTypes['pg/text@1']['output'];
+      readonly cantidad: CodecTypes['pg/int4@1']['output'];
+    };
+    readonly EstadisticaPublicacion: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly username: CodecTypes['pg/text@1']['output'];
+      readonly cantidad: CodecTypes['pg/int4@1']['output'];
+    };
+    readonly EstadisticaVisita: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly tipoVisitante: CodecTypes['pg/text@1']['output'];
+      readonly cantidad: CodecTypes['pg/int4@1']['output'];
     };
     readonly HistoricoPrecios: {
       readonly especieId: CodecTypes['pg/int4@1']['output'];
@@ -283,6 +333,12 @@ export type FieldOutputTypes = {
     readonly Imagen: {
       readonly clave: CodecTypes['pg/text@1']['output'];
       readonly contenido: CodecTypes['pg/bytea@1']['output'];
+      readonly cargadaEn: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly avisoVencimientoEn: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    };
+    readonly KilosEmpaquetado: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly valor: CodecTypes['pg/text@1']['output'];
     };
     readonly Local: {
       readonly id: CodecTypes['pg/int4@1']['output'];
@@ -300,6 +356,8 @@ export type FieldOutputTypes = {
       readonly titulo: CodecTypes['pg/text@1']['output'];
       readonly descripcion: CodecTypes['pg/text@1']['output'];
       readonly vista: CodecTypes['pg/bool@1']['output'];
+      readonly url: CodecTypes['pg/text@1']['output'] | null;
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly usuarioId: CodecTypes['pg/int4@1']['output'];
     };
     readonly Operador: {
@@ -316,15 +374,6 @@ export type FieldOutputTypes = {
       readonly codigoPais: CodecTypes['pg/text@1']['output'];
       readonly nombrePais: CodecTypes['pg/text@1']['output'];
     };
-    readonly Presentacion: {
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly uamId: CodecTypes['pg/int4@1']['output'] | null;
-      readonly nombrePresentacion: CodecTypes['pg/text@1']['output'];
-      readonly kgPorUnidad: Numeric<10, 2> | null;
-      readonly presentacionActiva: CodecTypes['pg/bool@1']['output'];
-      readonly presentacionDefault: CodecTypes['pg/bool@1']['output'];
-      readonly variedadId: CodecTypes['pg/int4@1']['output'];
-    };
     readonly Productor: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly usuarioId: CodecTypes['pg/int4@1']['output'];
@@ -336,15 +385,22 @@ export type FieldOutputTypes = {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly version: CodecTypes['pg/int4@1']['output'];
       readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly fechaVigencia: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly avisoProximoVencimientoEn: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly avisoVencimientoEn: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly publicacionDisponible: CodecTypes['pg/bool@1']['output'];
       readonly publicacionActiva: CodecTypes['pg/bool@1']['output'];
       readonly precio: Numeric<12, 2> | null;
+      readonly comentario: CodecTypes['pg/text@1']['output'] | null;
       readonly cantidadUnidades: CodecTypes['pg/int4@1']['output'] | null;
       readonly foto: CodecTypes['pg/text@1']['output'] | null;
+      readonly fotoEliminadaPorVencimientoEn:
+        CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly tipoPublicacion: 'OPERADOR' | 'PRODUCTOR';
       readonly especieId: CodecTypes['pg/int4@1']['output'];
       readonly variedadId: CodecTypes['pg/int4@1']['output'] | null;
-      readonly presentacionId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly envaseId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly kilosId: CodecTypes['pg/int4@1']['output'] | null;
       readonly categoriaId: CodecTypes['pg/int4@1']['output'] | null;
       readonly calibreId: CodecTypes['pg/int4@1']['output'] | null;
     };
@@ -360,9 +416,14 @@ export type FieldOutputTypes = {
       readonly productorId: CodecTypes['pg/int4@1']['output'];
       readonly paisId: CodecTypes['pg/int4@1']['output'] | null;
     };
+    readonly SesionRevocada: {
+      readonly tokenHash: CodecTypes['pg/text@1']['output'];
+      readonly expiraEn: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    };
     readonly Ubicacion: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly nombreUbicacion: CodecTypes['pg/text@1']['output'];
+      readonly departamento: CodecTypes['pg/text@1']['output'] | null;
       readonly urlMaps: CodecTypes['pg/text@1']['output'];
       readonly publicacionId: CodecTypes['pg/int4@1']['output'];
     };
@@ -372,7 +433,14 @@ export type FieldOutputTypes = {
       readonly passwordHash: CodecTypes['pg/text@1']['output'];
       readonly twoFactorSecret: CodecTypes['pg/text@1']['output'] | null;
       readonly twoFactorEnabled: CodecTypes['pg/bool@1']['output'];
+      readonly twoFactorChallengeHash: CodecTypes['pg/text@1']['output'] | null;
+      readonly twoFactorPendingSecret: CodecTypes['pg/text@1']['output'] | null;
+      readonly twoFactorExpiresAt: CodecTypes['pg/int4@1']['output'] | null;
+      readonly twoFactorFailedAttempts: CodecTypes['pg/int4@1']['output'];
+      readonly twoFactorLockedUntil: CodecTypes['pg/int4@1']['output'] | null;
+      readonly twoFactorLastStep: CodecTypes['pg/int4@1']['output'] | null;
       readonly solicitoRestablecimiento: CodecTypes['pg/bool@1']['output'];
+      readonly habilitado: CodecTypes['pg/bool@1']['output'];
       readonly rol: 'ADMINISTRADOR' | 'OPERADOR' | 'PRODUCTOR';
     };
     readonly Variedad: {
@@ -390,6 +458,15 @@ export type FieldInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly usuarioId: CodecTypes['pg/int4@1']['input'];
       readonly email: CodecTypes['pg/text@1']['input'];
+    };
+    readonly AvisoVencimientoLocal: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly operadorId: CodecTypes['pg/int4@1']['input'];
+      readonly naveId: CodecTypes['pg/int4@1']['input'];
+      readonly numeroLocal: CodecTypes['pg/text@1']['input'];
+      readonly finContrato: CodecTypes['pg/date-temporal@1']['input'];
+      readonly tipo: CodecTypes['pg/text@1']['input'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
     readonly CachePreciosReferencia: {
       readonly id: CodecTypes['pg/int4@1']['input'];
@@ -411,12 +488,53 @@ export type FieldInputTypes = {
       readonly nombreConfiguracion: CodecTypes['pg/text@1']['input'];
       readonly valorConfiguracion: CodecTypes['pg/text@1']['input'];
     };
+    readonly EjecucionTareaProgramada: {
+      readonly nombre: CodecTypes['pg/text@1']['input'];
+      readonly fecha: CodecTypes['pg/date-temporal@1']['input'];
+      readonly completadaEn: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly elementosProcesados: CodecTypes['pg/int4@1']['input'];
+    };
+    readonly Envase: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly nombreEnvase: CodecTypes['pg/text@1']['input'];
+    };
     readonly Especie: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly uamId: CodecTypes['pg/int4@1']['input'] | null;
       readonly nombreEspecie: CodecTypes['pg/text@1']['input'];
       readonly especieActiva: CodecTypes['pg/bool@1']['input'];
       readonly fotoEspecie: CodecTypes['pg/text@1']['input'] | null;
+    };
+    readonly EstadisticaCantidadPublicacion: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly username: CodecTypes['pg/text@1']['input'];
+      readonly cantidad: CodecTypes['pg/int4@1']['input'];
+    };
+    readonly EstadisticaContacto: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly username: CodecTypes['pg/text@1']['input'];
+      readonly cantidad: CodecTypes['pg/int4@1']['input'];
+    };
+    readonly EstadisticaContactoPublicacion: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly username: CodecTypes['pg/text@1']['input'];
+      readonly especie: CodecTypes['pg/text@1']['input'];
+      readonly cantidad: CodecTypes['pg/int4@1']['input'];
+    };
+    readonly EstadisticaPublicacion: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly username: CodecTypes['pg/text@1']['input'];
+      readonly cantidad: CodecTypes['pg/int4@1']['input'];
+    };
+    readonly EstadisticaVisita: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly tipoVisitante: CodecTypes['pg/text@1']['input'];
+      readonly cantidad: CodecTypes['pg/int4@1']['input'];
     };
     readonly HistoricoPrecios: {
       readonly especieId: CodecTypes['pg/int4@1']['input'];
@@ -428,6 +546,12 @@ export type FieldInputTypes = {
     readonly Imagen: {
       readonly clave: CodecTypes['pg/text@1']['input'];
       readonly contenido: CodecTypes['pg/bytea@1']['input'];
+      readonly cargadaEn: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly avisoVencimientoEn: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+    };
+    readonly KilosEmpaquetado: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly valor: CodecTypes['pg/text@1']['input'];
     };
     readonly Local: {
       readonly id: CodecTypes['pg/int4@1']['input'];
@@ -445,6 +569,8 @@ export type FieldInputTypes = {
       readonly titulo: CodecTypes['pg/text@1']['input'];
       readonly descripcion: CodecTypes['pg/text@1']['input'];
       readonly vista: CodecTypes['pg/bool@1']['input'];
+      readonly url: CodecTypes['pg/text@1']['input'] | null;
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly usuarioId: CodecTypes['pg/int4@1']['input'];
     };
     readonly Operador: {
@@ -461,15 +587,6 @@ export type FieldInputTypes = {
       readonly codigoPais: CodecTypes['pg/text@1']['input'];
       readonly nombrePais: CodecTypes['pg/text@1']['input'];
     };
-    readonly Presentacion: {
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly uamId: CodecTypes['pg/int4@1']['input'] | null;
-      readonly nombrePresentacion: CodecTypes['pg/text@1']['input'];
-      readonly kgPorUnidad: CodecTypes['pg/numeric@1']['input'] | null;
-      readonly presentacionActiva: CodecTypes['pg/bool@1']['input'];
-      readonly presentacionDefault: CodecTypes['pg/bool@1']['input'];
-      readonly variedadId: CodecTypes['pg/int4@1']['input'];
-    };
     readonly Productor: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly usuarioId: CodecTypes['pg/int4@1']['input'];
@@ -481,15 +598,22 @@ export type FieldInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly version: CodecTypes['pg/int4@1']['input'];
       readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly fechaVigencia: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly avisoProximoVencimientoEn: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly avisoVencimientoEn: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly publicacionDisponible: CodecTypes['pg/bool@1']['input'];
       readonly publicacionActiva: CodecTypes['pg/bool@1']['input'];
       readonly precio: CodecTypes['pg/numeric@1']['input'] | null;
+      readonly comentario: CodecTypes['pg/text@1']['input'] | null;
       readonly cantidadUnidades: CodecTypes['pg/int4@1']['input'] | null;
       readonly foto: CodecTypes['pg/text@1']['input'] | null;
+      readonly fotoEliminadaPorVencimientoEn:
+        CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly tipoPublicacion: 'OPERADOR' | 'PRODUCTOR';
       readonly especieId: CodecTypes['pg/int4@1']['input'];
       readonly variedadId: CodecTypes['pg/int4@1']['input'] | null;
-      readonly presentacionId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly envaseId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly kilosId: CodecTypes['pg/int4@1']['input'] | null;
       readonly categoriaId: CodecTypes['pg/int4@1']['input'] | null;
       readonly calibreId: CodecTypes['pg/int4@1']['input'] | null;
     };
@@ -505,9 +629,14 @@ export type FieldInputTypes = {
       readonly productorId: CodecTypes['pg/int4@1']['input'];
       readonly paisId: CodecTypes['pg/int4@1']['input'] | null;
     };
+    readonly SesionRevocada: {
+      readonly tokenHash: CodecTypes['pg/text@1']['input'];
+      readonly expiraEn: CodecTypes['pg/timestamptz-temporal@1']['input'];
+    };
     readonly Ubicacion: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly nombreUbicacion: CodecTypes['pg/text@1']['input'];
+      readonly departamento: CodecTypes['pg/text@1']['input'] | null;
       readonly urlMaps: CodecTypes['pg/text@1']['input'];
       readonly publicacionId: CodecTypes['pg/int4@1']['input'];
     };
@@ -517,7 +646,14 @@ export type FieldInputTypes = {
       readonly passwordHash: CodecTypes['pg/text@1']['input'];
       readonly twoFactorSecret: CodecTypes['pg/text@1']['input'] | null;
       readonly twoFactorEnabled: CodecTypes['pg/bool@1']['input'];
+      readonly twoFactorChallengeHash: CodecTypes['pg/text@1']['input'] | null;
+      readonly twoFactorPendingSecret: CodecTypes['pg/text@1']['input'] | null;
+      readonly twoFactorExpiresAt: CodecTypes['pg/int4@1']['input'] | null;
+      readonly twoFactorFailedAttempts: CodecTypes['pg/int4@1']['input'];
+      readonly twoFactorLockedUntil: CodecTypes['pg/int4@1']['input'] | null;
+      readonly twoFactorLastStep: CodecTypes['pg/int4@1']['input'] | null;
       readonly solicitoRestablecimiento: CodecTypes['pg/bool@1']['input'];
+      readonly habilitado: CodecTypes['pg/bool@1']['input'];
       readonly rol: 'ADMINISTRADOR' | 'OPERADOR' | 'PRODUCTOR';
     };
     readonly Variedad: {
@@ -535,6 +671,15 @@ export type StorageColumnTypes = {
       readonly email: CodecTypes['pg/text@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly usuarioId: CodecTypes['pg/int4@1']['output'];
+    };
+    readonly avisoVencimientoLocal: {
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly finContrato: CodecTypes['pg/date-temporal@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly naveId: CodecTypes['pg/int4@1']['output'];
+      readonly numeroLocal: CodecTypes['pg/text@1']['output'];
+      readonly operadorId: CodecTypes['pg/int4@1']['output'];
+      readonly tipo: CodecTypes['pg/text@1']['output'];
     };
     readonly cachePreciosReferencia: {
       readonly claveCache: CodecTypes['pg/text@1']['output'];
@@ -556,12 +701,53 @@ export type StorageColumnTypes = {
       readonly nombreConfiguracion: CodecTypes['pg/text@1']['output'];
       readonly valorConfiguracion: CodecTypes['pg/text@1']['output'];
     };
+    readonly ejecucionTareaProgramada: {
+      readonly completadaEn: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly elementosProcesados: CodecTypes['pg/int4@1']['output'];
+      readonly fecha: CodecTypes['pg/date-temporal@1']['output'];
+      readonly nombre: CodecTypes['pg/text@1']['output'];
+    };
+    readonly envase: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly nombreEnvase: CodecTypes['pg/text@1']['output'];
+    };
     readonly especie: {
       readonly especieActiva: CodecTypes['pg/bool@1']['output'];
       readonly fotoEspecie: CodecTypes['pg/text@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly nombreEspecie: CodecTypes['pg/text@1']['output'];
       readonly uamId: CodecTypes['pg/int4@1']['output'] | null;
+    };
+    readonly estadisticaCantidadPublicacion: {
+      readonly cantidad: CodecTypes['pg/int4@1']['output'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly username: CodecTypes['pg/text@1']['output'];
+    };
+    readonly estadisticaContacto: {
+      readonly cantidad: CodecTypes['pg/int4@1']['output'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly username: CodecTypes['pg/text@1']['output'];
+    };
+    readonly estadisticaContactoPublicacion: {
+      readonly cantidad: CodecTypes['pg/int4@1']['output'];
+      readonly especie: CodecTypes['pg/text@1']['output'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly username: CodecTypes['pg/text@1']['output'];
+    };
+    readonly estadisticaPublicacion: {
+      readonly cantidad: CodecTypes['pg/int4@1']['output'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly username: CodecTypes['pg/text@1']['output'];
+    };
+    readonly estadisticaVisita: {
+      readonly cantidad: CodecTypes['pg/int4@1']['output'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly tipoVisitante: CodecTypes['pg/text@1']['output'];
     };
     readonly historicoPrecios: {
       readonly especieId: CodecTypes['pg/int4@1']['output'];
@@ -571,8 +757,14 @@ export type StorageColumnTypes = {
       readonly historico: CodecTypes['pg/jsonb@1']['output'];
     };
     readonly imagen: {
+      readonly avisoVencimientoEn: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly cargadaEn: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly clave: CodecTypes['pg/text@1']['output'];
       readonly contenido: CodecTypes['pg/bytea@1']['output'];
+    };
+    readonly kilosEmpaquetado: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly valor: CodecTypes['pg/text@1']['output'];
     };
     readonly local: {
       readonly finContrato: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
@@ -587,8 +779,10 @@ export type StorageColumnTypes = {
     };
     readonly notificacion: {
       readonly descripcion: CodecTypes['pg/text@1']['output'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly titulo: CodecTypes['pg/text@1']['output'];
+      readonly url: CodecTypes['pg/text@1']['output'] | null;
       readonly usuarioId: CodecTypes['pg/int4@1']['output'];
       readonly vista: CodecTypes['pg/bool@1']['output'];
     };
@@ -606,15 +800,6 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly nombrePais: CodecTypes['pg/text@1']['output'];
     };
-    readonly presentacion: {
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly kgPorUnidad: Numeric<10, 2> | null;
-      readonly nombrePresentacion: CodecTypes['pg/text@1']['output'];
-      readonly presentacionActiva: CodecTypes['pg/bool@1']['output'];
-      readonly presentacionDefault: CodecTypes['pg/bool@1']['output'];
-      readonly uamId: CodecTypes['pg/int4@1']['output'] | null;
-      readonly variedadId: CodecTypes['pg/int4@1']['output'];
-    };
     readonly productor: {
       readonly fotoPerfil: CodecTypes['pg/text@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
@@ -623,15 +808,22 @@ export type StorageColumnTypes = {
       readonly whatsApp: CodecTypes['pg/text@1']['output'];
     };
     readonly publicacion: {
+      readonly avisoProximoVencimientoEn: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly avisoVencimientoEn: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly calibreId: CodecTypes['pg/int4@1']['output'] | null;
       readonly cantidadUnidades: CodecTypes['pg/int4@1']['output'] | null;
       readonly categoriaId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly comentario: CodecTypes['pg/text@1']['output'] | null;
+      readonly envaseId: CodecTypes['pg/int4@1']['output'] | null;
       readonly especieId: CodecTypes['pg/int4@1']['output'];
       readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly fechaVigencia: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly foto: CodecTypes['pg/text@1']['output'] | null;
+      readonly fotoEliminadaPorVencimientoEn:
+        CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly kilosId: CodecTypes['pg/int4@1']['output'] | null;
       readonly precio: Numeric<12, 2> | null;
-      readonly presentacionId: CodecTypes['pg/int4@1']['output'] | null;
       readonly publicacionActiva: CodecTypes['pg/bool@1']['output'];
       readonly publicacionDisponible: CodecTypes['pg/bool@1']['output'];
       readonly tipoPublicacion: 'OPERADOR' | 'PRODUCTOR';
@@ -650,18 +842,30 @@ export type StorageColumnTypes = {
       readonly productorId: CodecTypes['pg/int4@1']['output'];
       readonly publicacionId: CodecTypes['pg/int4@1']['output'];
     };
+    readonly sesionRevocada: {
+      readonly expiraEn: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly tokenHash: CodecTypes['pg/text@1']['output'];
+    };
     readonly ubicacion: {
+      readonly departamento: CodecTypes['pg/text@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly nombreUbicacion: CodecTypes['pg/text@1']['output'];
       readonly publicacionId: CodecTypes['pg/int4@1']['output'];
       readonly urlMaps: CodecTypes['pg/text@1']['output'];
     };
     readonly usuario: {
+      readonly habilitado: CodecTypes['pg/bool@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly passwordHash: CodecTypes['pg/text@1']['output'];
       readonly rol: 'ADMINISTRADOR' | 'OPERADOR' | 'PRODUCTOR';
       readonly solicitoRestablecimiento: CodecTypes['pg/bool@1']['output'];
+      readonly twoFactorChallengeHash: CodecTypes['pg/text@1']['output'] | null;
       readonly twoFactorEnabled: CodecTypes['pg/bool@1']['output'];
+      readonly twoFactorExpiresAt: CodecTypes['pg/int4@1']['output'] | null;
+      readonly twoFactorFailedAttempts: CodecTypes['pg/int4@1']['output'];
+      readonly twoFactorLastStep: CodecTypes['pg/int4@1']['output'] | null;
+      readonly twoFactorLockedUntil: CodecTypes['pg/int4@1']['output'] | null;
+      readonly twoFactorPendingSecret: CodecTypes['pg/text@1']['output'] | null;
       readonly twoFactorSecret: CodecTypes['pg/text@1']['output'] | null;
       readonly username: CodecTypes['pg/text@1']['output'];
     };
@@ -681,6 +885,15 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly usuarioId: CodecTypes['pg/int4@1']['input'];
     };
+    readonly avisoVencimientoLocal: {
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly finContrato: CodecTypes['pg/date-temporal@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly naveId: CodecTypes['pg/int4@1']['input'];
+      readonly numeroLocal: CodecTypes['pg/text@1']['input'];
+      readonly operadorId: CodecTypes['pg/int4@1']['input'];
+      readonly tipo: CodecTypes['pg/text@1']['input'];
+    };
     readonly cachePreciosReferencia: {
       readonly claveCache: CodecTypes['pg/text@1']['input'];
       readonly estadoCache: CodecTypes['pg/text@1']['input'];
@@ -701,12 +914,53 @@ export type StorageColumnInputTypes = {
       readonly nombreConfiguracion: CodecTypes['pg/text@1']['input'];
       readonly valorConfiguracion: CodecTypes['pg/text@1']['input'];
     };
+    readonly ejecucionTareaProgramada: {
+      readonly completadaEn: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly elementosProcesados: CodecTypes['pg/int4@1']['input'];
+      readonly fecha: CodecTypes['pg/date-temporal@1']['input'];
+      readonly nombre: CodecTypes['pg/text@1']['input'];
+    };
+    readonly envase: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly nombreEnvase: CodecTypes['pg/text@1']['input'];
+    };
     readonly especie: {
       readonly especieActiva: CodecTypes['pg/bool@1']['input'];
       readonly fotoEspecie: CodecTypes['pg/text@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly nombreEspecie: CodecTypes['pg/text@1']['input'];
       readonly uamId: CodecTypes['pg/int4@1']['input'] | null;
+    };
+    readonly estadisticaCantidadPublicacion: {
+      readonly cantidad: CodecTypes['pg/int4@1']['input'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly username: CodecTypes['pg/text@1']['input'];
+    };
+    readonly estadisticaContacto: {
+      readonly cantidad: CodecTypes['pg/int4@1']['input'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly username: CodecTypes['pg/text@1']['input'];
+    };
+    readonly estadisticaContactoPublicacion: {
+      readonly cantidad: CodecTypes['pg/int4@1']['input'];
+      readonly especie: CodecTypes['pg/text@1']['input'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly username: CodecTypes['pg/text@1']['input'];
+    };
+    readonly estadisticaPublicacion: {
+      readonly cantidad: CodecTypes['pg/int4@1']['input'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly username: CodecTypes['pg/text@1']['input'];
+    };
+    readonly estadisticaVisita: {
+      readonly cantidad: CodecTypes['pg/int4@1']['input'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly tipoVisitante: CodecTypes['pg/text@1']['input'];
     };
     readonly historicoPrecios: {
       readonly especieId: CodecTypes['pg/int4@1']['input'];
@@ -716,8 +970,14 @@ export type StorageColumnInputTypes = {
       readonly historico: CodecTypes['pg/jsonb@1']['input'];
     };
     readonly imagen: {
+      readonly avisoVencimientoEn: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly cargadaEn: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly clave: CodecTypes['pg/text@1']['input'];
       readonly contenido: CodecTypes['pg/bytea@1']['input'];
+    };
+    readonly kilosEmpaquetado: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly valor: CodecTypes['pg/text@1']['input'];
     };
     readonly local: {
       readonly finContrato: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
@@ -732,8 +992,10 @@ export type StorageColumnInputTypes = {
     };
     readonly notificacion: {
       readonly descripcion: CodecTypes['pg/text@1']['input'];
+      readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly titulo: CodecTypes['pg/text@1']['input'];
+      readonly url: CodecTypes['pg/text@1']['input'] | null;
       readonly usuarioId: CodecTypes['pg/int4@1']['input'];
       readonly vista: CodecTypes['pg/bool@1']['input'];
     };
@@ -751,15 +1013,6 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly nombrePais: CodecTypes['pg/text@1']['input'];
     };
-    readonly presentacion: {
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly kgPorUnidad: CodecTypes['pg/numeric@1']['input'] | null;
-      readonly nombrePresentacion: CodecTypes['pg/text@1']['input'];
-      readonly presentacionActiva: CodecTypes['pg/bool@1']['input'];
-      readonly presentacionDefault: CodecTypes['pg/bool@1']['input'];
-      readonly uamId: CodecTypes['pg/int4@1']['input'] | null;
-      readonly variedadId: CodecTypes['pg/int4@1']['input'];
-    };
     readonly productor: {
       readonly fotoPerfil: CodecTypes['pg/text@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
@@ -768,15 +1021,22 @@ export type StorageColumnInputTypes = {
       readonly whatsApp: CodecTypes['pg/text@1']['input'];
     };
     readonly publicacion: {
+      readonly avisoProximoVencimientoEn: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly avisoVencimientoEn: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly calibreId: CodecTypes['pg/int4@1']['input'] | null;
       readonly cantidadUnidades: CodecTypes['pg/int4@1']['input'] | null;
       readonly categoriaId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly comentario: CodecTypes['pg/text@1']['input'] | null;
+      readonly envaseId: CodecTypes['pg/int4@1']['input'] | null;
       readonly especieId: CodecTypes['pg/int4@1']['input'];
       readonly fecha: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly fechaVigencia: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly foto: CodecTypes['pg/text@1']['input'] | null;
+      readonly fotoEliminadaPorVencimientoEn:
+        CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly kilosId: CodecTypes['pg/int4@1']['input'] | null;
       readonly precio: CodecTypes['pg/numeric@1']['input'] | null;
-      readonly presentacionId: CodecTypes['pg/int4@1']['input'] | null;
       readonly publicacionActiva: CodecTypes['pg/bool@1']['input'];
       readonly publicacionDisponible: CodecTypes['pg/bool@1']['input'];
       readonly tipoPublicacion: 'OPERADOR' | 'PRODUCTOR';
@@ -795,18 +1055,30 @@ export type StorageColumnInputTypes = {
       readonly productorId: CodecTypes['pg/int4@1']['input'];
       readonly publicacionId: CodecTypes['pg/int4@1']['input'];
     };
+    readonly sesionRevocada: {
+      readonly expiraEn: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly tokenHash: CodecTypes['pg/text@1']['input'];
+    };
     readonly ubicacion: {
+      readonly departamento: CodecTypes['pg/text@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly nombreUbicacion: CodecTypes['pg/text@1']['input'];
       readonly publicacionId: CodecTypes['pg/int4@1']['input'];
       readonly urlMaps: CodecTypes['pg/text@1']['input'];
     };
     readonly usuario: {
+      readonly habilitado: CodecTypes['pg/bool@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly passwordHash: CodecTypes['pg/text@1']['input'];
       readonly rol: 'ADMINISTRADOR' | 'OPERADOR' | 'PRODUCTOR';
       readonly solicitoRestablecimiento: CodecTypes['pg/bool@1']['input'];
+      readonly twoFactorChallengeHash: CodecTypes['pg/text@1']['input'] | null;
       readonly twoFactorEnabled: CodecTypes['pg/bool@1']['input'];
+      readonly twoFactorExpiresAt: CodecTypes['pg/int4@1']['input'] | null;
+      readonly twoFactorFailedAttempts: CodecTypes['pg/int4@1']['input'];
+      readonly twoFactorLastStep: CodecTypes['pg/int4@1']['input'] | null;
+      readonly twoFactorLockedUntil: CodecTypes['pg/int4@1']['input'] | null;
+      readonly twoFactorPendingSecret: CodecTypes['pg/text@1']['input'] | null;
       readonly twoFactorSecret: CodecTypes['pg/text@1']['input'] | null;
       readonly username: CodecTypes['pg/text@1']['input'];
     };
@@ -875,6 +1147,86 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'usuario';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly avisoVencimientoLocal: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly operadorId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                };
+                readonly naveId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                };
+                readonly numeroLocal: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly finContrato: {
+                  readonly nativeType: 'date';
+                  readonly codecId: 'pg/date-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly tipo: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly fecha: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                {
+                  readonly columns: readonly [
+                    'operadorId',
+                    'naveId',
+                    'numeroLocal',
+                    'finContrato',
+                    'tipo',
+                  ];
+                  readonly name: 'avisoVencimientoLocal_contrato_tipo_key';
+                },
+              ];
+              indexes: readonly [
+                {
+                  readonly name: 'avisoVencimientoLocal_operadorId_idx_b7d31568';
+                  readonly prefix: 'avisoVencimientoLocal_operadorId_idx';
+                  readonly columns: readonly ['operadorId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'avisoVencimientoLocal';
+                    readonly columns: readonly ['operadorId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'operador';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -1008,6 +1360,56 @@ type ContractBase = Omit<
               indexes: readonly [];
               foreignKeys: readonly [];
             };
+            readonly ejecucionTareaProgramada: {
+              columns: {
+                readonly nombre: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly fecha: {
+                  readonly nativeType: 'date';
+                  readonly codecId: 'pg/date-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly completadaEn: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly elementosProcesados: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['nombre'] };
+              uniques: readonly [];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly envase: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly nombreEnvase: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['nombreEnvase'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
             readonly especie: {
               columns: {
                 readonly id: {
@@ -1046,6 +1448,191 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [{ readonly columns: readonly ['uamId'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly estadisticaCantidadPublicacion: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly fecha: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly username: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly cantidad: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['fecha', 'username'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly estadisticaContacto: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly fecha: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly username: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly cantidad: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['fecha', 'username'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly estadisticaContactoPublicacion: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly fecha: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly username: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly especie: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly cantidad: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['fecha', 'username', 'especie'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly estadisticaPublicacion: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly fecha: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly username: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly cantidad: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['fecha', 'username'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly estadisticaVisita: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly fecha: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly tipoVisitante: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly cantidad: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['fecha', 'tipoVisitante'] }];
               indexes: readonly [];
               foreignKeys: readonly [];
             };
@@ -1107,9 +1694,41 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/bytea@1';
                   readonly nullable: false;
                 };
+                readonly cargadaEn: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                };
+                readonly avisoVencimientoEn: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                };
               };
               primaryKey: { readonly columns: readonly ['clave'] };
               uniques: readonly [];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly kilosEmpaquetado: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly valor: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['valor'] }];
               indexes: readonly [];
               foreignKeys: readonly [];
             };
@@ -1240,6 +1859,18 @@ type ContractBase = Omit<
                     readonly value: DefaultLiteralValue<'pg/bool@1', false>;
                   };
                 };
+                readonly url: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly fecha: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly typeParams: { readonly precision: 3 };
+                };
                 readonly usuarioId: {
                   readonly nativeType: 'int4';
                   readonly codecId: 'pg/int4@1';
@@ -1249,6 +1880,18 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
               indexes: readonly [
+                {
+                  readonly name: 'notificacion_usuarioId_vista_idx_36fef1d8';
+                  readonly prefix: 'notificacion_usuarioId_vista_idx';
+                  readonly columns: readonly ['usuarioId', 'vista'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'notificacion_usuarioId_fecha_id_idx_eb1c24cd';
+                  readonly prefix: 'notificacion_usuarioId_fecha_id_idx';
+                  readonly columns: readonly ['usuarioId', 'fecha', 'id'];
+                  readonly unique: false;
+                },
                 {
                   readonly name: 'notificacion_usuarioId_idx_5f01c7d6';
                   readonly prefix: 'notificacion_usuarioId_idx';
@@ -1368,82 +2011,6 @@ type ContractBase = Omit<
               indexes: readonly [];
               foreignKeys: readonly [];
             };
-            readonly presentacion: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'function';
-                    readonly expression: 'autoincrement()';
-                  };
-                };
-                readonly uamId: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                };
-                readonly nombrePresentacion: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly kgPorUnidad: {
-                  readonly nativeType: 'numeric';
-                  readonly codecId: 'pg/numeric@1';
-                  readonly nullable: true;
-                  readonly typeParams: { readonly precision: 10; readonly scale: 2 };
-                };
-                readonly presentacionActiva: {
-                  readonly nativeType: 'bool';
-                  readonly codecId: 'pg/bool@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/bool@1', true>;
-                  };
-                };
-                readonly presentacionDefault: {
-                  readonly nativeType: 'bool';
-                  readonly codecId: 'pg/bool@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
-                  };
-                };
-                readonly variedadId: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['uamId'] }];
-              indexes: readonly [
-                {
-                  readonly name: 'presentacion_variedadId_idx_33d5d76b';
-                  readonly prefix: 'presentacion_variedadId_idx';
-                  readonly columns: readonly ['variedadId'];
-                  readonly unique: false;
-                },
-              ];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'presentacion';
-                    readonly columns: readonly ['variedadId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'variedad';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-              ];
-            };
             readonly productor: {
               columns: {
                 readonly id: {
@@ -1522,6 +2089,21 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-temporal@1';
                   readonly nullable: false;
                 };
+                readonly fechaVigencia: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                };
+                readonly avisoProximoVencimientoEn: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                };
+                readonly avisoVencimientoEn: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                };
                 readonly publicacionDisponible: {
                   readonly nativeType: 'bool';
                   readonly codecId: 'pg/bool@1';
@@ -1546,6 +2128,11 @@ type ContractBase = Omit<
                   readonly nullable: true;
                   readonly typeParams: { readonly precision: 12; readonly scale: 2 };
                 };
+                readonly comentario: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
                 readonly cantidadUnidades: {
                   readonly nativeType: 'int4';
                   readonly codecId: 'pg/int4@1';
@@ -1554,6 +2141,11 @@ type ContractBase = Omit<
                 readonly foto: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly fotoEliminadaPorVencimientoEn: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
                   readonly nullable: true;
                 };
                 readonly tipoPublicacion: {
@@ -1571,7 +2163,12 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                 };
-                readonly presentacionId: {
+                readonly envaseId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
+                readonly kilosId: {
                   readonly nativeType: 'int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
@@ -1603,9 +2200,15 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
                 {
-                  readonly name: 'publicacion_presentacionId_idx_2981aeac';
-                  readonly prefix: 'publicacion_presentacionId_idx';
-                  readonly columns: readonly ['presentacionId'];
+                  readonly name: 'publicacion_envaseId_idx_c66e7843';
+                  readonly prefix: 'publicacion_envaseId_idx';
+                  readonly columns: readonly ['envaseId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'publicacion_kilosId_idx_9257854e';
+                  readonly prefix: 'publicacion_kilosId_idx';
+                  readonly columns: readonly ['kilosId'];
                   readonly unique: false;
                 },
                 {
@@ -1650,11 +2253,23 @@ type ContractBase = Omit<
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'publicacion';
-                    readonly columns: readonly ['presentacionId'];
+                    readonly columns: readonly ['envaseId'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'presentacion';
+                    readonly tableName: 'envase';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'publicacion';
+                    readonly columns: readonly ['kilosId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'kilosEmpaquetado';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -1848,6 +2463,32 @@ type ContractBase = Omit<
                 },
               ];
             };
+            readonly sesionRevocada: {
+              columns: {
+                readonly tokenHash: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly expiraEn: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['tokenHash'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'sesionRevocada_expiraEn_idx_68039536';
+                  readonly prefix: 'sesionRevocada_expiraEn_idx';
+                  readonly columns: readonly ['expiraEn'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
             readonly ubicacion: {
               columns: {
                 readonly id: {
@@ -1863,6 +2504,11 @@ type ContractBase = Omit<
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                };
+                readonly departamento: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                 };
                 readonly urlMaps: {
                   readonly nativeType: 'text';
@@ -1935,6 +2581,40 @@ type ContractBase = Omit<
                     readonly value: DefaultLiteralValue<'pg/bool@1', false>;
                   };
                 };
+                readonly twoFactorChallengeHash: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly twoFactorPendingSecret: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly twoFactorExpiresAt: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
+                readonly twoFactorFailedAttempts: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                };
+                readonly twoFactorLockedUntil: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
+                readonly twoFactorLastStep: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
                 readonly solicitoRestablecimiento: {
                   readonly nativeType: 'bool';
                   readonly codecId: 'pg/bool@1';
@@ -1944,6 +2624,15 @@ type ContractBase = Omit<
                     readonly value: DefaultLiteralValue<'pg/bool@1', false>;
                   };
                 };
+                readonly habilitado: {
+                  readonly nativeType: 'bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', true>;
+                  };
+                };
                 readonly rol: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
@@ -1951,7 +2640,10 @@ type ContractBase = Omit<
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['username'] }];
+              uniques: readonly [
+                { readonly columns: readonly ['username'] },
+                { readonly columns: readonly ['twoFactorChallengeHash'] },
+              ];
               indexes: readonly [];
               foreignKeys: readonly [];
             };
@@ -2038,6 +2730,10 @@ type ContractBase = Omit<
   readonly targetFamily: 'sql';
   readonly roots: {
     readonly usuario: { readonly namespace: 'public' & NamespaceId; readonly model: 'Usuario' };
+    readonly sesionRevocada: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'SesionRevocada';
+    };
     readonly administrador: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'Administrador';
@@ -2046,17 +2742,26 @@ type ContractBase = Omit<
     readonly productor: { readonly namespace: 'public' & NamespaceId; readonly model: 'Productor' };
     readonly nave: { readonly namespace: 'public' & NamespaceId; readonly model: 'Nave' };
     readonly local: { readonly namespace: 'public' & NamespaceId; readonly model: 'Local' };
+    readonly avisoVencimientoLocal: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'AvisoVencimientoLocal';
+    };
     readonly especie: { readonly namespace: 'public' & NamespaceId; readonly model: 'Especie' };
     readonly variedad: { readonly namespace: 'public' & NamespaceId; readonly model: 'Variedad' };
-    readonly presentacion: {
+    readonly envase: { readonly namespace: 'public' & NamespaceId; readonly model: 'Envase' };
+    readonly kilosEmpaquetado: {
       readonly namespace: 'public' & NamespaceId;
-      readonly model: 'Presentacion';
+      readonly model: 'KilosEmpaquetado';
     };
     readonly categoria: { readonly namespace: 'public' & NamespaceId; readonly model: 'Categoria' };
     readonly calibre: { readonly namespace: 'public' & NamespaceId; readonly model: 'Calibre' };
     readonly pais: { readonly namespace: 'public' & NamespaceId; readonly model: 'Pais' };
     readonly ubicacion: { readonly namespace: 'public' & NamespaceId; readonly model: 'Ubicacion' };
     readonly imagen: { readonly namespace: 'public' & NamespaceId; readonly model: 'Imagen' };
+    readonly ejecucionTareaProgramada: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'EjecucionTareaProgramada';
+    };
     readonly publicacion: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'Publicacion';
@@ -2084,6 +2789,26 @@ type ContractBase = Omit<
     readonly historicoPrecios: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'HistoricoPrecios';
+    };
+    readonly estadisticaVisita: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'EstadisticaVisita';
+    };
+    readonly estadisticaContacto: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'EstadisticaContacto';
+    };
+    readonly estadisticaContactoPublicacion: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'EstadisticaContactoPublicacion';
+    };
+    readonly estadisticaPublicacion: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'EstadisticaPublicacion';
+    };
+    readonly estadisticaCantidadPublicacion: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'EstadisticaCantidadPublicacion';
     };
   };
   readonly domain: {
@@ -2125,6 +2850,68 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly usuarioId: { readonly column: 'usuarioId' };
                 readonly email: { readonly column: 'email' };
+              };
+            };
+          };
+          readonly AvisoVencimientoLocal: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly operadorId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly naveId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly numeroLocal: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly finContrato: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/date-temporal@1' };
+              };
+              readonly tipo: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly fecha: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+            };
+            readonly relations: {
+              readonly operador: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Operador';
+                };
+                readonly cardinality: 'N:1';
+                readonly on: {
+                  readonly localFields: readonly ['operadorId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'avisoVencimientoLocal';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly operadorId: { readonly column: 'operadorId' };
+                readonly naveId: { readonly column: 'naveId' };
+                readonly numeroLocal: { readonly column: 'numeroLocal' };
+                readonly finContrato: { readonly column: 'finContrato' };
+                readonly tipo: { readonly column: 'tipo' };
+                readonly fecha: { readonly column: 'fecha' };
               };
             };
           };
@@ -2267,6 +3054,73 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly EjecucionTareaProgramada: {
+            readonly fields: {
+              readonly nombre: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly fecha: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/date-temporal@1' };
+              };
+              readonly completadaEn: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly elementosProcesados: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'ejecucionTareaProgramada';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly nombre: { readonly column: 'nombre' };
+                readonly fecha: { readonly column: 'fecha' };
+                readonly completadaEn: { readonly column: 'completadaEn' };
+                readonly elementosProcesados: { readonly column: 'elementosProcesados' };
+              };
+            };
+          };
+          readonly Envase: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly nombreEnvase: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly publicaciones: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Publicacion';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['envaseId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'envase';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly nombreEnvase: { readonly column: 'nombreEnvase' };
+              };
+            };
+          };
           readonly Especie: {
             readonly fields: {
               readonly id: {
@@ -2348,6 +3202,181 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly EstadisticaCantidadPublicacion: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly fecha: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly username: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly cantidad: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'estadisticaCantidadPublicacion';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly fecha: { readonly column: 'fecha' };
+                readonly username: { readonly column: 'username' };
+                readonly cantidad: { readonly column: 'cantidad' };
+              };
+            };
+          };
+          readonly EstadisticaContacto: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly fecha: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly username: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly cantidad: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'estadisticaContacto';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly fecha: { readonly column: 'fecha' };
+                readonly username: { readonly column: 'username' };
+                readonly cantidad: { readonly column: 'cantidad' };
+              };
+            };
+          };
+          readonly EstadisticaContactoPublicacion: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly fecha: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly username: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly especie: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly cantidad: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'estadisticaContactoPublicacion';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly fecha: { readonly column: 'fecha' };
+                readonly username: { readonly column: 'username' };
+                readonly especie: { readonly column: 'especie' };
+                readonly cantidad: { readonly column: 'cantidad' };
+              };
+            };
+          };
+          readonly EstadisticaPublicacion: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly fecha: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly username: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly cantidad: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'estadisticaPublicacion';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly fecha: { readonly column: 'fecha' };
+                readonly username: { readonly column: 'username' };
+                readonly cantidad: { readonly column: 'cantidad' };
+              };
+            };
+          };
+          readonly EstadisticaVisita: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly fecha: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly tipoVisitante: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly cantidad: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'estadisticaVisita';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly fecha: { readonly column: 'fecha' };
+                readonly tipoVisitante: { readonly column: 'tipoVisitante' };
+                readonly cantidad: { readonly column: 'cantidad' };
+              };
+            };
+          };
           readonly HistoricoPrecios: {
             readonly fields: {
               readonly especieId: {
@@ -2406,6 +3435,20 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bytea@1' };
               };
+              readonly cargadaEn: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly avisoVencimientoEn: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
             };
             readonly relations: Record<string, never>;
             readonly storage: {
@@ -2414,6 +3457,41 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly clave: { readonly column: 'clave' };
                 readonly contenido: { readonly column: 'contenido' };
+                readonly cargadaEn: { readonly column: 'cargadaEn' };
+                readonly avisoVencimientoEn: { readonly column: 'avisoVencimientoEn' };
+              };
+            };
+          };
+          readonly KilosEmpaquetado: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly valor: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly publicaciones: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Publicacion';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['kilosId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'kilosEmpaquetado';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly valor: { readonly column: 'valor' };
               };
             };
           };
@@ -2527,6 +3605,18 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
               };
+              readonly url: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly fecha: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
               readonly usuarioId: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
@@ -2553,6 +3643,8 @@ type ContractBase = Omit<
                 readonly titulo: { readonly column: 'titulo' };
                 readonly descripcion: { readonly column: 'descripcion' };
                 readonly vista: { readonly column: 'vista' };
+                readonly url: { readonly column: 'url' };
+                readonly fecha: { readonly column: 'fecha' };
                 readonly usuarioId: { readonly column: 'usuarioId' };
               };
             };
@@ -2589,6 +3681,17 @@ type ContractBase = Omit<
               };
             };
             readonly relations: {
+              readonly avisosVencimientoLocales: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AvisoVencimientoLocal';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['operadorId'];
+                };
+              };
               readonly locales: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -2686,79 +3789,6 @@ type ContractBase = Omit<
               };
             };
           };
-          readonly Presentacion: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly uamId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly nombrePresentacion: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly kgPorUnidad: {
-                readonly nullable: true;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/numeric@1';
-                  readonly typeParams: { readonly precision: 10; readonly scale: 2 };
-                };
-              };
-              readonly presentacionActiva: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
-              };
-              readonly presentacionDefault: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
-              };
-              readonly variedadId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-            };
-            readonly relations: {
-              readonly publicaciones: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Publicacion';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['presentacionId'];
-                };
-              };
-              readonly variedad: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Variedad';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['variedadId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'presentacion';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly uamId: { readonly column: 'uamId' };
-                readonly nombrePresentacion: { readonly column: 'nombrePresentacion' };
-                readonly kgPorUnidad: { readonly column: 'kgPorUnidad' };
-                readonly presentacionActiva: { readonly column: 'presentacionActiva' };
-                readonly presentacionDefault: { readonly column: 'presentacionDefault' };
-                readonly variedadId: { readonly column: 'variedadId' };
-              };
-            };
-          };
           readonly Productor: {
             readonly fields: {
               readonly id: {
@@ -2835,6 +3865,27 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-temporal@1';
                 };
               };
+              readonly fechaVigencia: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly avisoProximoVencimientoEn: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly avisoVencimientoEn: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
               readonly publicacionDisponible: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
@@ -2851,6 +3902,10 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly precision: 12; readonly scale: 2 };
                 };
               };
+              readonly comentario: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly cantidadUnidades: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
@@ -2858,6 +3913,13 @@ type ContractBase = Omit<
               readonly foto: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly fotoEliminadaPorVencimientoEn: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
               };
               readonly tipoPublicacion: {
                 readonly nullable: false;
@@ -2871,7 +3933,11 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
-              readonly presentacionId: {
+              readonly envaseId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly kilosId: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
@@ -2907,6 +3973,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
+              readonly envase: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Envase';
+                };
+                readonly cardinality: 'N:1';
+                readonly on: {
+                  readonly localFields: readonly ['envaseId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
               readonly especie: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -2918,14 +3995,14 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
-              readonly presentacion: {
+              readonly kilos: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Presentacion';
+                  readonly model: 'KilosEmpaquetado';
                 };
                 readonly cardinality: 'N:1';
                 readonly on: {
-                  readonly localFields: readonly ['presentacionId'];
+                  readonly localFields: readonly ['kilosId'];
                   readonly targetFields: readonly ['id'];
                 };
               };
@@ -2948,15 +4025,25 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly version: { readonly column: 'version' };
                 readonly fecha: { readonly column: 'fecha' };
+                readonly fechaVigencia: { readonly column: 'fechaVigencia' };
+                readonly avisoProximoVencimientoEn: {
+                  readonly column: 'avisoProximoVencimientoEn';
+                };
+                readonly avisoVencimientoEn: { readonly column: 'avisoVencimientoEn' };
                 readonly publicacionDisponible: { readonly column: 'publicacionDisponible' };
                 readonly publicacionActiva: { readonly column: 'publicacionActiva' };
                 readonly precio: { readonly column: 'precio' };
+                readonly comentario: { readonly column: 'comentario' };
                 readonly cantidadUnidades: { readonly column: 'cantidadUnidades' };
                 readonly foto: { readonly column: 'foto' };
+                readonly fotoEliminadaPorVencimientoEn: {
+                  readonly column: 'fotoEliminadaPorVencimientoEn';
+                };
                 readonly tipoPublicacion: { readonly column: 'tipoPublicacion' };
                 readonly especieId: { readonly column: 'especieId' };
                 readonly variedadId: { readonly column: 'variedadId' };
-                readonly presentacionId: { readonly column: 'presentacionId' };
+                readonly envaseId: { readonly column: 'envaseId' };
+                readonly kilosId: { readonly column: 'kilosId' };
                 readonly categoriaId: { readonly column: 'categoriaId' };
                 readonly calibreId: { readonly column: 'calibreId' };
               };
@@ -3097,6 +4184,31 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly SesionRevocada: {
+            readonly fields: {
+              readonly tokenHash: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly expiraEn: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'sesionRevocada';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly tokenHash: { readonly column: 'tokenHash' };
+                readonly expiraEn: { readonly column: 'expiraEn' };
+              };
+            };
+          };
           readonly Ubicacion: {
             readonly fields: {
               readonly id: {
@@ -3105,6 +4217,10 @@ type ContractBase = Omit<
               };
               readonly nombreUbicacion: {
                 readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly departamento: {
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly urlMaps: {
@@ -3135,6 +4251,7 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly id: { readonly column: 'id' };
                 readonly nombreUbicacion: { readonly column: 'nombreUbicacion' };
+                readonly departamento: { readonly column: 'departamento' };
                 readonly urlMaps: { readonly column: 'urlMaps' };
                 readonly publicacionId: { readonly column: 'publicacionId' };
               };
@@ -3162,7 +4279,35 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
               };
+              readonly twoFactorChallengeHash: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly twoFactorPendingSecret: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly twoFactorExpiresAt: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly twoFactorFailedAttempts: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly twoFactorLockedUntil: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly twoFactorLastStep: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
               readonly solicitoRestablecimiento: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly habilitado: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
               };
@@ -3193,7 +4338,14 @@ type ContractBase = Omit<
                 readonly passwordHash: { readonly column: 'passwordHash' };
                 readonly twoFactorSecret: { readonly column: 'twoFactorSecret' };
                 readonly twoFactorEnabled: { readonly column: 'twoFactorEnabled' };
+                readonly twoFactorChallengeHash: { readonly column: 'twoFactorChallengeHash' };
+                readonly twoFactorPendingSecret: { readonly column: 'twoFactorPendingSecret' };
+                readonly twoFactorExpiresAt: { readonly column: 'twoFactorExpiresAt' };
+                readonly twoFactorFailedAttempts: { readonly column: 'twoFactorFailedAttempts' };
+                readonly twoFactorLockedUntil: { readonly column: 'twoFactorLockedUntil' };
+                readonly twoFactorLastStep: { readonly column: 'twoFactorLastStep' };
                 readonly solicitoRestablecimiento: { readonly column: 'solicitoRestablecimiento' };
+                readonly habilitado: { readonly column: 'habilitado' };
                 readonly rol: { readonly column: 'rol' };
               };
             };
@@ -3231,17 +4383,6 @@ type ContractBase = Omit<
                 readonly on: {
                   readonly localFields: readonly ['especieId'];
                   readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly presentaciones: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Presentacion';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['variedadId'];
                 };
               };
               readonly publicaciones: {

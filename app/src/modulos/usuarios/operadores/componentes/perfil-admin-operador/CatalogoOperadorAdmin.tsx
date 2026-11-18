@@ -1,18 +1,20 @@
 "use client";
 
-import NotificacionToast, { useNotificacionToast } from "@/compartido/componentes/NotificacionToast";
+import { fetchConSesion } from "@/modulos/identidad-acceso/autenticacion/cliente-sesion";
+
+import { useNotificacionToast } from "@/compartido/componentes/NotificacionToast";
 import EstadoVacio from "@/compartido/componentes/EstadoVacio";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ConfirmModal } from "@/compartido/componentes/ConfirmModal";
-import { useActualizacionesPublicaciones } from "@/modulos/publicaciones/tiempo-real/use-actualizaciones-publicaciones";
+import { useActualizacionesPublicaciones } from "@/modulos/publicaciones/tiempo-real/useActualizacionesPublicaciones";
 
 import DrawerEditarPublicacion from "../../../../publicaciones/operadores/componentes/DrawerEditarPublicacion";
 import type { CambiosPublicacionOperador, PublicacionParaEditar } from "../../../../publicaciones/operadores/tipos";
-import type { OpcionesEdicionPublicacion } from "@/modulos/publicaciones/operadores/tipos";
-import type { PublicacionPerfilAdmin } from "../../consultas-perfil-admin";
+import type { OpcionesEdicionPublicacion } from "@/modulos/publicaciones/catalogos/tipos";
+import type { PublicacionPerfilAdmin } from "../../consultas/consultas-perfil-admin";
 import TarjetaPublicacionAdmin from "./TarjetaPublicacionAdmin";
 
 type CatalogoOperadorAdminProps = {
@@ -31,18 +33,22 @@ function paraDrawer(publicacion: PublicacionPerfilAdmin): PublicacionParaEditar 
         variedadId: publicacion.variedadId,
         especie: publicacion.especie,
         variedad: publicacion.variedad,
-        presentacion: publicacion.presentacion,
+        envase: publicacion.envase,
+        kilos: publicacion.kilos,
         categoria: publicacion.categoria,
         calibre: publicacion.calibre,
         precio: publicacion.precio,
         cantidadUnidades: publicacion.cantidadUnidades,
+        comentario: publicacion.comentario,
         fecha: publicacion.fecha,
         foto: publicacion.foto,
         categoriaId: publicacion.categoriaId,
         calibreId: publicacion.calibreId,
-        presentacionId: publicacion.presentacionId,
+        envaseId: publicacion.envaseId,
+        kilosId: publicacion.kilosId,
         paisId: publicacion.paisId,
         disponible: publicacion.disponible,
+        fechaVigencia: publicacion.fechaVigencia,
     };
 }
 
@@ -56,13 +62,12 @@ export default function CatalogoOperadorAdmin({operadorId, publicaciones, opcion
     const [drawerAbierto, setDrawerAbierto] = useState(false);
     const [bajaPendiente, setBajaPendiente] = useState(false);
     const [eliminando, setEliminando] = useState(false);
-    const { notificacion, notificar, cerrarNotificacion } = useNotificacionToast();
+    const { notificar } = useNotificacionToast();
 
     // Se busca en las props para que, después de router.refresh(), el drawer muestre los datos guardados
     const publicacionSeleccionada = publicaciones.find((publicacion) => publicacion.id === seleccionadaId) ?? null;
 
     function abrirDrawer(publicacion: PublicacionPerfilAdmin) {
-        cerrarNotificacion();
         setSeleccionadaId(publicacion.id);
         setDrawerAbierto(true);
     }
@@ -81,26 +86,27 @@ export default function CatalogoOperadorAdmin({operadorId, publicaciones, opcion
         formulario.set("cambios", JSON.stringify(cambios));
         if (fotoNueva) formulario.set("fotografia", fotoNueva);
 
-        const respuesta = await fetch(`/api/publicaciones/${publicacionSeleccionada.id}?operadorId=${operadorId}`, { method: "PATCH", body: formulario });
+        const respuesta = await fetchConSesion(`/api/publicaciones/${publicacionSeleccionada.id}?operadorId=${operadorId}`, { method: "PATCH", body: formulario });
         const resultado = await respuesta.json();
         if (!respuesta.ok) {
             if (respuesta.status === 409) router.refresh();
-            throw new Error(resultado.errores?.[0] ?? "No se pudieron guardar los cambios.");
+            throw new Error(resultado.errores?.join("\n") || "No se pudieron guardar los cambios.");
         }
+        notificar(resultado.mensaje ?? "Publicación actualizada.", "success");
         router.refresh();
     }
 
     async function eliminarPublicacion() {
         if (!publicacionSeleccionada || eliminando) return;
         setEliminando(true);
-        cerrarNotificacion();
         try {
-            const respuesta = await fetch(`/api/publicaciones/${publicacionSeleccionada.id}?operadorId=${operadorId}`, { method: "DELETE" });
+            const respuesta = await fetchConSesion(`/api/publicaciones/${publicacionSeleccionada.id}?operadorId=${operadorId}`, { method: "DELETE" });
             const resultado = await respuesta.json();
             if (!respuesta.ok) {
-                throw new Error(resultado.errores?.[0] ?? "No se pudo eliminar la publicación.");
+                throw new Error(resultado.errores?.join("\n") || "No se pudo eliminar la publicación.");
             }
             cerrarDrawer();
+            notificar(resultado.mensaje ?? "Publicación eliminada.", "success");
             router.refresh();
         } catch (error) {
             notificar(error instanceof Error ? error.message : "No se pudo conectar con el servidor.", "error");
@@ -112,11 +118,10 @@ export default function CatalogoOperadorAdmin({operadorId, publicaciones, opcion
 
     return (
         <>
-            <NotificacionToast notificacion={notificacion} alCerrar={cerrarNotificacion} />
             {publicaciones.length == 0 ? (
                 <EstadoVacio titulo="Sin publicaciones" descripcion="El operador no tiene publicaciones." icono={<Inventory2OutlinedIcon />} anunciar={false} />
             ) : (
-                <ul className="grid grid-cols-1 gap-[var(--espacio-secciones)] md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 tarjetas-compactas">
+                <ul className="grilla-tarjetas gap-[var(--espacio-secciones)]">
                     {publicaciones.map((publicacion) => (
                         <li key={publicacion.id}>
                             <TarjetaPublicacionAdmin publicacion={publicacion} onSeleccionar={abrirDrawer} />
@@ -132,7 +137,7 @@ export default function CatalogoOperadorAdmin({operadorId, publicaciones, opcion
                 publicacion={publicacionSeleccionada ? paraDrawer (publicacionSeleccionada) : null}
                 incrementoPrecio={incrementoPrecio}
                 alGuardar={guardarCambios}
-                alEliminar={() => { cerrarNotificacion(); setBajaPendiente(true); }}
+                alEliminar={() => { setBajaPendiente(true); }}
                 eliminando={eliminando}
                 {...opciones}
             >

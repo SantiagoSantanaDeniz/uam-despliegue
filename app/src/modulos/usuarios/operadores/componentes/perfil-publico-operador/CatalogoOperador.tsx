@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import EstadoVacio from "@/compartido/componentes/EstadoVacio";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import SearchOffOutlinedIcon from "@mui/icons-material/SearchOffOutlined";
-import { useActualizacionesPublicaciones } from "../../../../publicaciones/tiempo-real/use-actualizaciones-publicaciones";
-import type { PublicacionPerfil } from "../../consultas-perfil-publico";
-import FiltrosPublicaciones, { compararPublicacionesPorPrioridad, type OrdenPublicaciones } from "../../../../publicaciones/filtros/FiltrosPublicaciones";
-import type { PublicacionListado } from "../../../../consulta-mercado/acciones/PublicacionesOperador";
+import { useActualizacionesPublicaciones } from "../../../../publicaciones/tiempo-real/useActualizacionesPublicaciones";
+import type { PublicacionPerfil } from "../../consultas/consultas-perfil-publico";
+import FiltrosPublicaciones, { type OrdenPublicaciones } from "../../../../publicaciones/filtros/FiltrosPublicaciones";
+import { compararPublicacionesPorPrioridad } from "../../../../publicaciones/filtros/ordenar-publicaciones";
+import type { PublicacionListado } from "../../../../consulta-mercado/consultas/consultas-publicaciones-operador";
 import { compararEspeciesPorPrioridad } from "../../../../../compartido/prioridad-especies";
 import { DrawerPublicacionPerfil } from "./DrawerPublicacionPerfil";
 import TarjetaPublicacion from "./TarjetaPublicacion";
@@ -25,9 +26,10 @@ type CatalogoOperadorProps = {
     whatsAppOperador?: string;
     idOperador?: number;
     nombreOperador?: string;
+    enLicencia?: boolean;
 };
 
-export default function CatalogoOperador({publicaciones, whatsAppOperador = "", idOperador = 0, nombreOperador = ""}: CatalogoOperadorProps) {
+export default function CatalogoOperador({publicaciones, whatsAppOperador = "", idOperador = 0, nombreOperador = "", enLicencia = false}: CatalogoOperadorProps) {
     const router = useRouter();
     useActualizacionesPublicaciones(() => router.refresh(), { operadorPublicoId: idOperador });
     const [seleccionId, setSeleccionId] = useState<number | null>(null);
@@ -38,7 +40,7 @@ export default function CatalogoOperador({publicaciones, whatsAppOperador = "", 
     const publicacionesParaFiltros = useMemo<PublicacionListado[]>(() => publicaciones.map((publicacion) => ({
         ...publicacion,
         precio: publicacion.precio === null ? null : Number(publicacion.precio),
-        codigoCalibre: publicacion.calibre,
+        codigoCalibre: publicacion.codigoCalibre,
         tipoPublicacion: "OPERADOR",
         operador: {id: idOperador, nombreFantasia: nombreOperador, whatsApp: whatsAppOperador},
     })), [publicaciones, idOperador, nombreOperador, whatsAppOperador]);
@@ -93,7 +95,9 @@ export default function CatalogoOperador({publicaciones, whatsAppOperador = "", 
                                     ) : (
                                         <ViewModuleIcon fontSize="small" />
                                     )}
-                                        {agruparPorEspecie ? "Desagrupar" : "Agrupar por especie"}
+                                    {agruparPorEspecie ? "Desagrupar" : (
+                                        <span>Agrupar<span className={styles.detalleAgrupar}> por especie</span></span>
+                                    )}
                                 </span>
                             </button>
                         </div>
@@ -131,8 +135,8 @@ export default function CatalogoOperador({publicaciones, whatsAppOperador = "", 
                         )
                     ) : (
                         <EstadoVacio
-                            titulo={publicaciones.length === 0 ? "Todavía no hay publicaciones" : "Sin resultados para estos filtros"}
-                            descripcion={publicaciones.length === 0 ? "No hay publicaciones disponibles." : "No hay publicaciones que coincidan con la búsqueda."}
+                            titulo={enLicencia && publicaciones.length === 0 ? "Sin publicaciones, está de licencia" : publicaciones.length === 0 ? "Todavía no hay publicaciones" : "Sin resultados para estos filtros"}
+                            descripcion={enLicencia && publicaciones.length === 0 ? "" : publicaciones.length === 0 ? "No hay publicaciones disponibles." : "No hay publicaciones que coincidan con la búsqueda."}
                             icono={publicaciones.length === 0 ? <Inventory2OutlinedIcon /> : <SearchOffOutlinedIcon />}
                         />
                     )}

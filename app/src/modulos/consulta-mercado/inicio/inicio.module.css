@@ -27,7 +27,7 @@
     grid-template-rows: 11rem auto;
     overflow: hidden;
     border-bottom: 1px solid var(--color-border);
-    background: var(--color-primary-soft);
+    background: var(--color-secondary-soft);
     color: var(--color-foreground);
     box-shadow: var(--sombra-panel);
 }
@@ -67,7 +67,7 @@
     inset: 0;
     content: "";
     pointer-events: none;
-    background: linear-gradient(to bottom, transparent 88%, var(--color-primary-soft));
+    background: linear-gradient(to bottom, transparent 88%, var(--color-secondary-soft));
 }
 
 .heroFoto {
@@ -174,12 +174,12 @@
 
 .acceso:hover {
     transform: translateY(-2px);
-    border-color: var(--color-primary);
+    border-color: var(--color-secondary);
     box-shadow: 0 4px 10px rgb(0 0 0 / 8%);
 }
 
 .acceso:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--color-secondary);
     outline-offset: 2px;
 }
 
@@ -189,7 +189,7 @@
     overflow: hidden;
     width: 100%;
     padding: var(--padding-titulo-pagina);
-    border: 1px solid var(--color-primary-hover);
+    border: 1px solid var(--color-secondary-hover);
     border-radius: var(--radio-panel);
     background: var(--color-secondary);
     color: var(--color-titulo-pagina);
@@ -217,7 +217,7 @@
 
 .controles {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 9rem;
+    grid-template-columns: minmax(0, 1fr) max-content;
     align-items: center;
     gap: var(--espacio-controles);
 }
@@ -241,8 +241,6 @@
     grid-column: 2;
     grid-row: 2;
     justify-self: end;
-    width: 9rem;
-    min-width: 9rem;
 }
 
 .selectMui :global(.MuiOutlinedInput-root) {
@@ -257,11 +255,11 @@
 }
 
 .selectMui :global(.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline) {
-    border-color: var(--color-primary);
+    border-color: var(--color-secondary);
 }
 
 .selectMui :global(.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline) {
-    border-color: var(--color-primary);
+    border-color: var(--color-secondary);
 }
 
 .selectMui :global(.MuiInputLabel-root) {
@@ -269,15 +267,11 @@
 }
 
 .selectMui :global(.MuiInputLabel-root.Mui-focused) {
-    color: var(--color-primary);
+    color: var(--color-secondary);
 }
 
 .selectMui :global(.MuiInputBase-input) {
     color: var(--color-foreground);
-}
-
-.opcionSelect:global(.Mui-selected) {
-    background: var(--color-primary-soft) !important;
 }
 
 .lista {
@@ -286,40 +280,12 @@
     gap: var(--espacio-controles);
 }
 
-.paginacion {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--espacio-controles);
+.controles[data-ordenamiento="false"] {
+    grid-template-columns: minmax(0, 1fr);
 }
 
-.botonPagina {
-    min-height: var(--alto-control);
-    padding: var(--padding-control);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radio-control);
-    background: var(--color-surface);
-    color: var(--color-foreground);
-    font-size: var(--tamano-texto-secundario);
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.botonPagina:hover:not(:disabled),
-.botonPagina:focus-visible {
-    border-color: var(--color-primary);
-    color: var(--color-secondary);
-}
-
-.botonPagina:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
-.paginaActual {
-    color: var(--color-muted);
-    font-size: var(--tamano-texto-secundario);
-    white-space: nowrap;
+.controles[data-ordenamiento="false"] .filtroBuscador {
+    grid-column: 1 / -1;
 }
 
 @media (min-width: 768px) {
@@ -342,7 +308,7 @@
     }
 
     .lista {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: var(--columnas-tarjetas);
         gap: var(--espacio-secciones);
     }
 }
@@ -397,15 +363,5 @@
 
     .heroFoto {
         object-position: center 20%;
-    }
-
-    .lista {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-}
-
-@media (min-width: 1280px) {
-    .lista {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
     }
 }
